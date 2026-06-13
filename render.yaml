@@ -1,16 +1,20 @@
 services:
   - type: web
-    name: pipeline-crossing-assessment
+    name: pipeline-integrity-assessment
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python -m cepa_crossing.gui_server
+    healthCheckPath: /api/health
+    autoDeploy: true
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
       - key: PIPELINE_ASSESSMENT_HOST
         value: 0.0.0.0
+      - key: PIPELINE_ASSESSMENT_NO_LOGIN
+        value: "1"
+      - key: PIPELINE_ASSESSMENT_LOCAL_USER
+        value: render-user
       - key: PIPELINE_ASSESSMENT_DATA_DIR
-        value: /var/data/pipeline-crossing
-    disks:
-      - name: pipeline-crossing-data
-        mountPath: /var/data
-        sizeGB: 1
+        value: /tmp/pipeline-integrity-assessment

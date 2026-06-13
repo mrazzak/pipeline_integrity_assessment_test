@@ -3668,6 +3668,9 @@ def build_report_pdf(payload: dict[str, Any]) -> bytes:
 class GuiRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = self.path.split("?", 1)[0]
+        if path == "/api/health":
+            self.send_json(200, {"ok": True, "status": "healthy"})
+            return
         if path == "/api/runtime-config":
             no_login = str(os.environ.get("PIPELINE_ASSESSMENT_NO_LOGIN", "")).strip().lower() in {"1", "true", "yes", "on"}
             self.send_json(

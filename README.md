@@ -39,6 +39,20 @@ For a local version that opens directly without a login screen, double-click
 use on a trusted computer. The standard `start_gui.bat` launcher remains
 login-protected.
 
+## Deploy To Render
+
+The included [render.yaml](render.yaml) creates a no-login Render web service.
+Push this project to GitHub, GitLab, or Bitbucket, then in Render choose
+**New > Blueprint** and select the repository. Render will install the Python
+dependencies, bind the application to its assigned port, and check
+`/api/health` before routing traffic.
+
+The free configuration uses ephemeral storage. Generated server-side reports
+and runtime data can be cleared when the service restarts or redeploys. Saved
+calculations remain browser-local. For persistent server-side files, upgrade
+the service and attach a Render disk, then point
+`PIPELINE_ASSESSMENT_DATA_DIR` to the disk mount path.
+
 The GUI has four sections:
 
 - Pipeline information: OD, wall thickness, MAOP, grade/SMYS, and Young's modulus
