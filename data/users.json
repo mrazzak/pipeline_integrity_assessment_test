@@ -1,0 +1,273 @@
+{
+  "admin": {
+    "role": "admin",
+    "password_hash": "pbkdf2_sha256$200000$af2507e1e05babff9695ca905c220eee$a7504301e1efd523aa675b4cc4f3592d6807d216362b1b43e598819b85e1bedf",
+    "account_expires_at": "",
+    "password_changed_at": "2026-05-25",
+    "password_expires_at": "2026-09-22",
+    "full_name": "",
+    "email": "",
+    "last_login_at": "2026-06-13T00:16:21Z",
+    "session_count": 22,
+    "total_session_seconds": 58064.0,
+    "modules_used": [
+      "Automated ILI-to-FEA Defect Assessment",
+      "Backend User Management",
+      "CorLAS Failure Pressure Calculation",
+      "Engineering Criticality Assessment - CSA Z662 Annex K",
+      "ILI Feature Screening and Ranking",
+      "Interacting Anomalies FEA Model",
+      "Modified B31.G Calculation",
+      "PRCI Level 2 Dent Assessment",
+      "Pipeline Crossing Assessment",
+      "Statistical Dent Assessment"
+    ],
+    "active_sessions": {
+      "62334e10ee496484d6d3183bc50f11de": {
+        "started_at": "2026-05-26T17:41:18Z",
+        "last_seen_at": "2026-05-26T19:16:33Z",
+        "reported_seconds": 5715.0,
+        "modules_used": [
+          "Backend User Management",
+          "CorLAS Failure Pressure Calculation",
+          "Engineering Criticality Assessment - CSA Z662 Annex K",
+          "Pipeline Crossing Assessment",
+          "Statistical Dent Assessment"
+        ]
+      },
+      "58f0fb1707ed3949325234f83a3473c0": {
+        "started_at": "2026-05-26T19:21:22Z",
+        "last_seen_at": "2026-05-26T22:38:57Z",
+        "reported_seconds": 11855.0,
+        "modules_used": [
+          "Backend User Management",
+          "CorLAS Failure Pressure Calculation",
+          "Engineering Criticality Assessment - CSA Z662 Annex K",
+          "Modified B31.G Calculation",
+          "PRCI Level 2 Dent Assessment",
+          "Pipeline Crossing Assessment",
+          "Statistical Dent Assessment"
+        ]
+      },
+      "0e68a4c18b5cd735699dc66c96b3d72d": {
+        "started_at": "2026-05-26T23:36:10Z",
+        "last_seen_at": "2026-05-26T23:36:12Z",
+        "reported_seconds": 2.0,
+        "modules_used": [
+          "Interacting Anomalies FEA Model"
+        ]
+      },
+      "be258d4f8f51f8d522b142ef9970663b": {
+        "started_at": "2026-05-26T23:49:03Z",
+        "last_seen_at": "2026-05-26T23:58:11Z",
+        "reported_seconds": 549.0,
+        "modules_used": [
+          "Pipeline Crossing Assessment"
+        ]
+      },
+      "a36eb5162f5217fa58c056ad339efc12": {
+        "started_at": "2026-05-27T00:10:16Z",
+        "last_seen_at": "2026-05-27T00:10:19Z",
+        "reported_seconds": 3.0,
+        "modules_used": [
+          "Pipeline Crossing Assessment"
+        ]
+      },
+      "99a035030cd316b80297d1f131e1172b": {
+        "started_at": "2026-05-27T04:02:46Z",
+        "last_seen_at": "2026-05-27T04:02:54Z",
+        "reported_seconds": 8.0,
+        "modules_used": [
+          "Backend User Management",
+          "Pipeline Crossing Assessment"
+        ]
+      },
+      "080e70812fd82fa29ea60a8abaf01efe": {
+        "started_at": "2026-05-27T04:15:21Z",
+        "last_seen_at": "2026-05-27T04:29:13Z",
+        "reported_seconds": 335.0,
+        "modules_used": [
+          "CorLAS Failure Pressure Calculation",
+          "Pipeline Crossing Assessment"
+        ]
+      },
+      "b2b88196bb6b4ab1d4d325145afe8c8a": {
+        "started_at": "2026-06-11T00:50:01Z",
+        "last_seen_at": "2026-06-11T02:19:35Z",
+        "reported_seconds": 4429.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment",
+          "Backend User Management",
+          "ILI Feature Screening and Ranking"
+        ]
+      },
+      "ae1b31e517bd65a1c093a2173644a226": {
+        "started_at": "2026-06-11T04:46:01Z",
+        "last_seen_at": "2026-06-11T04:46:04Z",
+        "reported_seconds": 3.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment"
+        ]
+      },
+      "9cb0bfb544e1ef291c8aecdb6ca2b59b": {
+        "started_at": "2026-06-11T17:01:47Z",
+        "last_seen_at": "2026-06-11T17:01:50Z",
+        "reported_seconds": 3.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment"
+        ]
+      },
+      "3418978d9843a59f4e0a14fb8b1d386d": {
+        "started_at": "2026-06-12T03:00:59Z",
+        "last_seen_at": "2026-06-13T00:41:32Z",
+        "reported_seconds": 587.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment",
+          "Backend User Management",
+          "CorLAS Failure Pressure Calculation",
+          "Modified B31.G Calculation"
+        ]
+      },
+      "bffcde9a24d24b63f3f070a242ac8ede": {
+        "started_at": "2026-06-12T03:01:28Z",
+        "last_seen_at": "2026-06-12T03:22:57Z",
+        "reported_seconds": 13.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment",
+          "Backend User Management"
+        ]
+      },
+      "289f70a5393cbc92ff4c3810169d6539": {
+        "started_at": "2026-06-12T18:44:16Z",
+        "last_seen_at": "2026-06-13T00:44:08Z",
+        "reported_seconds": 6.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment"
+        ]
+      },
+      "7013c1166277743c1089e7743b038dee": {
+        "started_at": "2026-06-13T00:16:21Z",
+        "last_seen_at": "2026-06-13T00:23:52Z",
+        "reported_seconds": 14.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment",
+          "ILI Feature Screening and Ranking"
+        ]
+      }
+    }
+  },
+  "user": {
+    "role": "user",
+    "password_hash": "pbkdf2_sha256$200000$c96ecbeb76714ae022ceb87e3748c244$ce0c2ecbb56b67d0a6ac6194f1beacbbf1c3f6ccdc6656c64c19d555ff3fda37",
+    "account_expires_at": "",
+    "password_changed_at": "2026-05-25",
+    "password_expires_at": "2026-09-22",
+    "full_name": "",
+    "email": "",
+    "last_login_at": "2026-05-26T23:46:09Z",
+    "session_count": 6,
+    "total_session_seconds": 444.0,
+    "modules_used": [
+      "CorLAS Failure Pressure Calculation",
+      "Engineering Criticality Assessment - CSA Z662 Annex K",
+      "Interacting Anomalies FEA Model",
+      "Modified B31.G Calculation",
+      "PRCI Level 2 Dent Assessment",
+      "Pipeline Crossing Assessment",
+      "Statistical Dent Assessment"
+    ],
+    "active_sessions": {
+      "faf277eecb4607d540426917aa9dd4b3": {
+        "started_at": "2026-05-26T16:49:00Z",
+        "last_seen_at": "2026-05-26T16:49:00Z",
+        "reported_seconds": 0.0,
+        "modules_used": []
+      },
+      "26cc01ec9e9f71e3c376d08fe79760a5": {
+        "started_at": "2026-05-26T19:20:18Z",
+        "last_seen_at": "2026-05-26T19:20:51Z",
+        "reported_seconds": 33.0,
+        "modules_used": [
+          "Modified B31.G Calculation",
+          "PRCI Level 2 Dent Assessment"
+        ]
+      },
+      "faf4188191abf9f5af7faacb9388b266": {
+        "started_at": "2026-05-26T22:40:59Z",
+        "last_seen_at": "2026-05-26T22:46:37Z",
+        "reported_seconds": 337.0,
+        "modules_used": [
+          "CorLAS Failure Pressure Calculation",
+          "Engineering Criticality Assessment - CSA Z662 Annex K",
+          "Modified B31.G Calculation",
+          "PRCI Level 2 Dent Assessment",
+          "Pipeline Crossing Assessment",
+          "Statistical Dent Assessment"
+        ]
+      },
+      "4e779c23e1bf0414a951dd007a167cf1": {
+        "started_at": "2026-05-26T23:29:29Z",
+        "last_seen_at": "2026-05-26T23:29:45Z",
+        "reported_seconds": 16.0,
+        "modules_used": [
+          "Interacting Anomalies FEA Model"
+        ]
+      },
+      "4f05d371565230e2af06d7e12fa4d2ab": {
+        "started_at": "2026-05-26T23:33:55Z",
+        "last_seen_at": "2026-05-26T23:33:56Z",
+        "reported_seconds": 1.0,
+        "modules_used": [
+          "Interacting Anomalies FEA Model"
+        ]
+      }
+    }
+  },
+  "mrazzak": {
+    "role": "user",
+    "password_hash": "pbkdf2_sha256$200000$f813936222cf2768870dbc0f764e8d2f$cfefba6954d23f77edf6fb9082bfbd71b01b9751bb01413510aa610748fd8f48",
+    "account_expires_at": "",
+    "password_changed_at": "2026-06-03",
+    "password_expires_at": "2026-10-01",
+    "full_name": "",
+    "email": "",
+    "last_login_at": "2026-06-03T04:02:49Z",
+    "session_count": 3,
+    "total_session_seconds": 91994.0,
+    "modules_used": [
+      "Automated ILI-to-FEA Defect Assessment",
+      "Crack Growth / Fatigue Life",
+      "ILI Feature Screening and Ranking",
+      "Interacting Anomalies FEA Model",
+      "PRCI Level 2 Dent Assessment",
+      "Pipeline Crossing Assessment",
+      "RSTRENG Effective Area Calculation",
+      "SCC Crack Colony Assessment"
+    ],
+    "active_sessions": {
+      "1021536aff841cf68cfe34d137d59513": {
+        "started_at": "2026-05-26T17:31:17Z",
+        "last_seen_at": "2026-05-26T17:36:28Z",
+        "reported_seconds": 311.0,
+        "modules_used": [
+          "Pipeline Crossing Assessment"
+        ]
+      },
+      "3c0ce32f48f7d6fb3d1617558109286b": {
+        "started_at": "2026-06-03T04:02:49Z",
+        "last_seen_at": "2026-06-11T01:05:27Z",
+        "reported_seconds": 91670.0,
+        "modules_used": [
+          "Automated ILI-to-FEA Defect Assessment",
+          "Crack Growth / Fatigue Life",
+          "ILI Feature Screening and Ranking",
+          "Interacting Anomalies FEA Model",
+          "PRCI Level 2 Dent Assessment",
+          "Pipeline Crossing Assessment",
+          "RSTRENG Effective Area Calculation",
+          "SCC Crack Colony Assessment"
+        ]
+      }
+    }
+  }
+}

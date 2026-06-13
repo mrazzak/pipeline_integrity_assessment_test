@@ -1,0 +1,31 @@
+{
+  "pipe": {
+    "outside_diameter_in": 24.0,
+    "wall_thickness_in": 0.375,
+    "mop_psig": 720.0,
+    "smys_psi": 52000.0,
+    "youngs_modulus_psi": 30000000.0
+  },
+  "soil": {
+    "cover_in": 48.0,
+    "unit_weight_pcf": 120.0,
+    "modulus_reaction_psi": 1000.0,
+    "kb": 0.1,
+    "kz": 0.061
+  },
+  "vehicle": {
+    "crossing_angle_deg": 90.0,
+    "impact_factor": 1.15,
+    "loads": [
+      { "name": "front-left", "x_in": -72.0, "y_in": -36.0, "load_lb": 9000.0 },
+      { "name": "front-right", "x_in": -72.0, "y_in": 36.0, "load_lb": 9000.0 },
+      { "name": "rear-left", "x_in": 72.0, "y_in": -36.0, "load_lb": 14000.0 },
+      { "name": "rear-right", "x_in": 72.0, "y_in": 36.0, "load_lb": 14000.0 }
+    ]
+  },
+  "scan": {
+    "start_in": -180.0,
+    "stop_in": 180.0,
+    "step_in": 3.0
+  }
+}

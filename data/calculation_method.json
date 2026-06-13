@@ -1,0 +1,10 @@
+{
+  "method_name": "CEPA vehicle crossing methodology",
+  "soil_load_models": [
+    "prism",
+    "trap_door"
+  ],
+  "fatigue_constant": 1000000000000000,
+  "fatigue_exponent": 3,
+  "notes": "Live load pressure uses Boussinesq point-load distribution and hoop bending uses CEPA-style Kb/Kz relationship."
+}

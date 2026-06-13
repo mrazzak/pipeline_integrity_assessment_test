@@ -1,0 +1,1881 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pipe Integrity Assessment Tools</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+  </head>
+  <body class="auth-locked access-pending">
+    <section id="loginScreen" class="login-screen">
+      <div class="login-card">
+        <p class="eyebrow">PIPELINE INTEGRITY ASSESSMENT</p>
+        <h1>Login</h1>
+        <div id="loginError" class="error-box" hidden></div>
+        <label>
+          <span>User name</span>
+          <input id="loginUserName" type="text" autocomplete="username">
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="loginPassword" type="password" autocomplete="current-password">
+        </label>
+        <button id="loginSubmitButton" type="button">Login</button>
+        <div id="expiredPasswordPanel" class="password-reset-panel" hidden>
+          <p>Password expired. Enter a new password to continue.</p>
+          <label>
+            <span>New password</span>
+            <input id="expiredNewPassword" type="password" autocomplete="new-password">
+          </label>
+          <label>
+            <span>Confirm new password</span>
+            <input id="expiredConfirmPassword" type="password" autocomplete="new-password">
+          </label>
+          <button id="expiredPasswordButton" class="secondary-button" type="button">Change Password</button>
+        </div>
+        <p class="login-hint">Use the credentials provided by your administrator. Change default passwords before deployment.</p>
+      </div>
+      <div class="login-credit">Developed by M. Razzak</div>
+    </section>
+
+    <header class="app-header">
+      <div>
+        <h1>Pipe Integrity Assessment Tools</h1>
+      </div>
+      <div class="header-actions">
+        <div class="current-user">User: <strong id="currentUser">not logged in</strong></div>
+        <button id="showPasswordPanelButton" class="secondary-button" type="button">Change Password</button>
+        <button id="logoutButton" class="secondary-button" type="button">Logout</button>
+        <div class="status-pill" id="statusPill">Ready</div>
+      </div>
+    </header>
+
+    <section id="moduleSelector" class="module-selector" hidden>
+      <label class="module-select-field">
+        <span>Module</span>
+        <select id="moduleSelect" aria-label="Select assessment module">
+          <option value="">Choose a module</option>
+          <option value="pipeline">Pipeline Crossing Assessment</option>
+          <option value="corlas">CorLAS Failure Pressure Calculation</option>
+          <option value="sccColony">SCC Crack Colony Assessment</option>
+          <option value="crackGrowth">Crack Growth / Fatigue Life</option>
+          <option value="iliScreening">ILI Feature Screening and Ranking</option>
+          <option value="iliToFea">Automated ILI-to-FEA Defect Assessment</option>
+          <option value="annexK">Engineering Criticality Assessment - CSA Z662 Annex K</option>
+          <option value="dent">Statistical Dent Assessment</option>
+          <option value="b31g">Modified B31.G Calculation</option>
+          <option value="rstreng">RSTRENG Effective Area Calculation</option>
+          <option value="prciDent">PRCI Level 2 Dent Assessment</option>
+          <option value="interaction">Interacting Anomalies FEA Model</option>
+          <option id="adminModuleOption" value="admin" hidden>Backend User Management</option>
+        </select>
+        <small id="moduleSelectSummary">Select a module to open its inputs, outputs, and report tools.</small>
+      </label>
+      <div class="module-action-slot">
+        <span aria-hidden="true">Workflow</span>
+        <button id="iliWorkflowButton" class="workflow-button" type="button">ILI Data Risk Assessment Workflow</button>
+      </div>
+      <div class="module-help-slot">
+        <span aria-hidden="true">Help</span>
+        <button id="moduleHelpButton" class="icon-button help-button" type="button" aria-label="Open webpage instructions" title="Open webpage instructions">?</button>
+      </div>
+    </section>
+
+    <section id="calculationManager" class="calculation-manager" hidden>
+      <label>
+        <span>Calculation name</span>
+        <input id="assessmentName" type="text" value="Untitled calculation">
+      </label>
+      <button id="saveAssessmentButton" type="button">Save</button>
+      <label>
+        <span>Saved calculations</span>
+        <select id="savedAssessmentSelect">
+          <option value="">No saved calculations</option>
+        </select>
+      </label>
+      <button id="loadAssessmentButton" type="button">Load</button>
+      <button id="deleteAssessmentButton" class="danger-button" type="button">Delete</button>
+      <small id="calculationManagerNote">Saved calculations are stored for the current user and module.</small>
+    </section>
+
+    <div id="helpDialogOverlay" class="help-dialog-overlay" hidden>
+      <section class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpDialogTitle">
+        <button id="helpDialogClose" class="report-dialog-close" type="button" aria-label="Close instructions">x</button>
+        <h2 id="helpDialogTitle">Webpage Instructions</h2>
+        <p>Use the module dropdown to open one calculation workflow at a time. Save named calculation inputs from the bar below the module selector and load them later as required. Run the module calculation after loading to refresh its results.</p>
+        <div id="helpModuleInstructions" class="help-module-instructions"></div>
+      </section>
+    </div>
+
+    <main id="adminPage" class="admin-page" hidden>
+      <section id="adminPanel" class="segment admin-segment">
+        <div class="segment-heading">
+          <span class="segment-index">ADM</span>
+          <div>
+            <h2>Backend User Management</h2>
+            <p>Update users, passwords, roles, login expiration, and review usage history.</p>
+          </div>
+        </div>
+        <div id="adminMessage" class="soil-profile-summary">Admin changes are saved on the backend.</div>
+        <div class="admin-table-wrap">
+          <table class="admin-user-table">
+            <thead>
+              <tr>
+                <th>User name</th>
+                <th>Login</th>
+                <th>Role</th>
+                <th>Login expiration</th>
+                <th>Password expiration</th>
+                <th>Sessions</th>
+                <th>Total hours</th>
+                <th>Modules used</th>
+              </tr>
+            </thead>
+            <tbody id="adminUserTableBody">
+              <tr>
+                <td colspan="8">Login as admin to load backend users.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid admin-grid">
+          <label>
+            <span>Admin user</span>
+            <input id="adminUserName" type="text" autocomplete="username">
+          </label>
+          <label>
+            <span>Admin password</span>
+            <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Optional after admin login">
+          </label>
+          <label>
+            <span>User to update</span>
+            <input id="adminTargetUser" type="text" value="user">
+          </label>
+          <label>
+            <span>Full name</span>
+            <input id="adminTargetFullName" type="text" placeholder="Full user name">
+          </label>
+          <label>
+            <span>Email address</span>
+            <input id="adminTargetEmail" type="email" placeholder="name@example.com">
+          </label>
+          <label>
+            <span>New password</span>
+            <input id="adminTargetPassword" type="password" value="" placeholder="Leave blank to keep current">
+          </label>
+          <label>
+            <span>Login expiration date</span>
+            <input id="adminAccountExpiresAt" type="date">
+          </label>
+          <label>
+            <span>Role</span>
+            <select id="adminTargetRole">
+              <option value="user" selected>User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="adminSaveUserButton" type="button">Save User</button>
+          <button id="adminDeleteUserButton" class="danger-button" type="button">Delete User</button>
+        </div>
+      </section>
+    </main>
+
+    <main id="pipelinePage" class="layout" hidden>
+      <form class="input-stack" id="calculatorForm">
+        <section id="passwordPanel" class="segment password-segment is-hidden">
+          <div class="segment-heading">
+            <span class="segment-index">PW</span>
+            <div>
+              <h2>Change Password</h2>
+              <p>Passwords expire after 120 days. Choose a new password before that date.</p>
+            </div>
+          </div>
+          <div id="passwordMessage" class="soil-profile-summary">Enter your current password and a new password.</div>
+          <div class="grid">
+            <label>
+              <span>Current password</span>
+              <input id="currentPassword" type="password" autocomplete="current-password">
+            </label>
+            <label>
+              <span>New password</span>
+              <input id="newPassword" type="password" autocomplete="new-password">
+            </label>
+            <label>
+              <span>Confirm new password</span>
+              <input id="confirmPassword" type="password" autocomplete="new-password">
+            </label>
+          </div>
+          <div class="actions">
+            <button id="changePasswordButton" type="button">Save Password</button>
+            <button id="hidePasswordPanelButton" class="secondary-button" type="button">Close</button>
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">1</span>
+            <div>
+              <h2>Pipeline Information</h2>
+              <p>Dimensions, operating pressure, steel grade, and pipe material data.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Outside diameter</span>
+              <input id="outsideDiameter" type="number" min="0.001" step="0.001" value="24">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Wall thickness</span>
+              <input id="wallThickness" type="number" min="0.001" step="0.001" value="0.375">
+              <small>in</small>
+            </label>
+            <label>
+              <span>MAOP</span>
+              <input id="maop" type="number" min="0" step="1" value="720">
+              <small>psig</small>
+            </label>
+            <label>
+              <span>Class location</span>
+              <select id="classLocation">
+                <option value="1" selected>Class 1</option>
+                <option value="2">Class 2</option>
+                <option value="3">Class 3</option>
+                <option value="4">Class 4</option>
+              </select>
+            </label>
+            <label>
+              <span>Design factor</span>
+              <input id="designFactor" type="number" min="0.001" max="1" step="0.001" value="0.8">
+              <small>CSA Z662 F</small>
+            </label>
+            <label>
+              <span>Grade</span>
+              <select id="grade">
+                <optgroup label="Common API grades">
+                  <option value="35000">Grade B - 35 ksi</option>
+                  <option value="42000">X42 - 42 ksi</option>
+                  <option value="52000" selected>X52 - 52 ksi</option>
+                  <option value="60000">X60 - 60 ksi</option>
+                  <option value="65000">X65 - 65 ksi</option>
+                  <option value="70000">X70 - 70 ksi</option>
+                  <option value="80000">X80 - 80 ksi</option>
+                </optgroup>
+                <optgroup label="CSA Z245.1 grades">
+                  <option value="34954">CSA Grade 241 - 241 MPa</option>
+                  <option value="42061">CSA Grade 290 - 290 MPa</option>
+                  <option value="52069">CSA Grade 359 - 359 MPa</option>
+                  <option value="55985">CSA Grade 386 - 386 MPa</option>
+                  <option value="60046">CSA Grade 414 - 414 MPa</option>
+                  <option value="64977">CSA Grade 448 - 448 MPa</option>
+                  <option value="70093">CSA Grade 483 - 483 MPa</option>
+                  <option value="79771">CSA Grade 550 - 550 MPa</option>
+                  <option value="100076">CSA Grade 690 - 690 MPa</option>
+                </optgroup>
+                <optgroup label="Common ASTM grades">
+                  <option value="30000">ASTM A53 Grade A - 30 ksi</option>
+                  <option value="35000">ASTM A53 Grade B - 35 ksi</option>
+                  <option value="35000">ASTM A106 Grade B - 35 ksi</option>
+                  <option value="30000">ASTM A333 Grade 6 - 30 ksi</option>
+                  <option value="35000">ASTM A500 Grade B - 35 ksi</option>
+                  <option value="46000">ASTM A500 Grade C - 46 ksi</option>
+                  <option value="35000">ASTM A252 Grade 2 - 35 ksi</option>
+                  <option value="45000">ASTM A252 Grade 3 - 45 ksi</option>
+                  <option value="35000">ASTM A671 CC60 - 35 ksi</option>
+                  <option value="42000">ASTM A672 B60 - 42 ksi</option>
+                  <option value="52000">ASTM A672 B70 - 52 ksi</option>
+                </optgroup>
+                <option value="custom">Custom</option>
+              </select>
+              <small>SMYS</small>
+            </label>
+            <label>
+              <span>Custom SMYS</span>
+              <input id="customSmys" type="number" min="1" step="100" value="52000" disabled>
+              <small>psi</small>
+            </label>
+            <label>
+              <span>Young's modulus</span>
+              <input id="youngsModulus" type="number" min="1" step="100000" value="30000000">
+              <small>psi</small>
+            </label>
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">2</span>
+            <div>
+              <h2>Vehicle Information</h2>
+              <p>Axle layout, contact characteristics, crossing geometry, and load model.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Vehicle preset</span>
+              <select id="vehiclePreset">
+                <option value="custom" selected>Custom vehicle</option>
+                <optgroup label="Road vehicles">
+                  <option value="ford_f150">Ford F-150 pickup</option>
+                  <option value="ford_f350">Ford F-350 pickup</option>
+                  <option value="dump_truck_3_axle">3-axle dump truck</option>
+                  <option value="semi_truck">Semi truck</option>
+                  <option value="b_train">B-train combination</option>
+                </optgroup>
+                <optgroup label="Hydrovac trucks">
+                  <option value="hydrovac_tandem">Tandem hydrovac truck</option>
+                  <option value="hydrovac_tridem">Tridem hydrovac truck</option>
+                  <option value="hydrovac_tri_drive">Tri-drive hydrovac truck</option>
+                  <option value="hydrovac_semi_trailer">Semi-trailer hydrovac unit</option>
+                </optgroup>
+                <optgroup label="Tracked equipment">
+                  <option value="tracked_dozer">Tracked dozer</option>
+                  <option value="small_bulldozer">Small bulldozer</option>
+                  <option value="large_bulldozer">Large bulldozer</option>
+                  <option value="tracked_excavator">Tracked excavator</option>
+                  <option value="crawler_crane_small">Small crawler crane</option>
+                  <option value="crawler_crane_large">Large crawler crane</option>
+                </optgroup>
+                <optgroup label="Farm equipment">
+                  <option value="farm_tractor">Farm tractor</option>
+                  <option value="tractor_grain_cart">Tractor with grain cart</option>
+                  <option value="combine_harvester">Combine harvester</option>
+                  <option value="self_propelled_sprayer">Self-propelled sprayer</option>
+                  <option value="tracked_tractor">Tracked agricultural tractor</option>
+                </optgroup>
+              </select>
+            </label>
+            <label>
+              <span>Vehicle type</span>
+              <select id="vehicleType">
+                <option value="wheel" selected>Wheel</option>
+                <option value="track">Track</option>
+              </select>
+            </label>
+            <label>
+              <span id="axleCountLabel">Number of axles</span>
+              <input id="axleCount" type="number" min="1" max="20" step="1" value="4">
+            </label>
+            <label>
+              <span>Vehicle weight</span>
+              <input id="vehicleWeight" type="number" min="1" step="100" value="46000" readonly>
+              <small>lb</small>
+            </label>
+            <label>
+              <span>Crossing angle</span>
+              <input id="crossingAngle" type="number" min="1" max="179" step="1" value="90">
+              <small>deg</small>
+            </label>
+            <label>
+              <span>Impact factor</span>
+              <input id="impactFactor" type="number" min="0.01" step="0.01" value="1.15">
+            </label>
+          </div>
+          <div class="axle-editor">
+            <div class="axle-editor-heading">
+              <h3 id="schematicTitle">Axle Load Schematic</h3>
+              <p id="schematicHelp">Enter the load carried by each axle. The total vehicle weight updates from these boxes.</p>
+            </div>
+            <div id="schematicControls" class="schematic-controls">
+              <label>
+                <span>Contact area</span>
+                <input id="contactArea" type="number" min="0.01" step="1" value="180">
+                <small>in2 per tire/track pad</small>
+              </label>
+              <label id="tirePressureField">
+                <span>Default tyre pressure</span>
+                <input id="tirePressure" type="number" min="0" step="1" value="85">
+                <small>psi</small>
+              </label>
+              <label>
+                <span>Axle width</span>
+                <input id="axleWidth" type="number" min="0.01" step="1" value="72">
+                <small>in</small>
+              </label>
+              <label>
+                <span id="tireWidthLabel">Default tyre width</span>
+                <input id="tireWidth" type="number" min="1" step="0.5" value="12">
+                <small>in</small>
+              </label>
+              <label>
+                <span>Distance between axles</span>
+                <input id="axleSpacing" type="number" min="0.01" step="1" value="60">
+                <small>in</small>
+              </label>
+            </div>
+            <div id="vehicleSchematic" class="vehicle-schematic" aria-label="Vehicle axle load schematic"></div>
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">3</span>
+            <div>
+              <h2>Soil Data</h2>
+              <p>Grouped soil/surface profiles with editable CEPA soil inputs.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Soil profile</span>
+              <select id="soilProfile">
+                <option value="compacted_bare" selected>100% compacted bare soil</option>
+                <option value="sand_soil_mix">25% sand and rest soil</option>
+                <option value="asphalt_over_soil">Asphalt layer on top of soil</option>
+                <option value="concrete_over_soil">Concrete surface over soil</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            <label>
+              <span>Soil load equation</span>
+              <select id="soilLoadModel">
+                <option value="prism" selected>Prism load</option>
+                <option value="trap_door">Trap door</option>
+              </select>
+            </label>
+            <label>
+              <span>Soil friction angle</span>
+              <input id="soilFrictionAngle" type="number" min="0.1" max="89.9" step="0.5" value="30" disabled>
+              <small>deg</small>
+            </label>
+            <label>
+              <span>Surface layer thickness</span>
+              <input id="surfaceLayerThickness" type="number" min="0" step="0.5" value="0">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Surface layer unit weight</span>
+              <input id="surfaceLayerUnitWeight" type="number" min="0" step="1" value="0">
+              <small>pcf</small>
+            </label>
+            <label>
+              <span>Depth of cover</span>
+              <input id="cover" type="number" min="0.01" step="0.5" value="48">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Soil unit weight</span>
+              <input id="soilUnitWeight" type="number" min="0.01" step="1" value="120">
+              <small>pcf</small>
+            </label>
+            <label>
+              <span>Modulus of soil reaction</span>
+              <input id="soilModulus" type="number" min="0.01" step="10" value="1000">
+              <small>psi</small>
+            </label>
+            <label>
+              <span>Kb</span>
+              <input id="kb" type="number" min="0.0001" step="0.001" value="0.1">
+            </label>
+            <label>
+              <span>Kz</span>
+              <input id="kz" type="number" min="0.0001" step="0.001" value="0.061">
+            </label>
+            <label>
+              <span>Scan increment</span>
+              <input id="scanStep" type="number" min="0.1" step="0.5" value="3">
+              <small>in</small>
+            </label>
+          </div>
+          <div class="soil-profile-summary" id="soilProfileSummary">
+            Profile values populate the CEPA soil inputs. Review and edit values for project-specific soil data.
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">4</span>
+            <div>
+              <h2>Pre-existing Bending Strain</h2>
+              <p>Existing strain converted to stress and added to the assessment stress.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Bending strain input</span>
+              <select id="bendingStrainMode">
+                <option value="direct" selected>Enter strain directly</option>
+                <option value="deflection">Calculate from deflection and pipe length</option>
+              </select>
+            </label>
+            <label>
+              <span>Maximum bending strain</span>
+              <input id="bendingStrain" type="number" min="0" step="10" value="0">
+              <small>microstrain</small>
+            </label>
+            <label>
+              <span>Pipe deflection</span>
+              <input id="pipeDeflection" type="number" min="0" step="0.1" value="0" disabled>
+              <small>in</small>
+            </label>
+            <label>
+              <span>Deflected pipe length</span>
+              <input id="deflectedPipeLength" type="number" min="0.01" step="1" value="240" disabled>
+              <small>in</small>
+            </label>
+            <label>
+              <span>Strain stress basis</span>
+              <select id="bendingStrainBasis">
+                <option value="absolute" selected>Absolute added stress</option>
+              </select>
+              <small>E x strain</small>
+            </label>
+          </div>
+          <div class="strain-summary" id="strainSummary">
+            Direct bending strain input is used.
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">5</span>
+            <div>
+              <h2>Cyclic Loading Fatigue</h2>
+              <p>Cycle count and stress range check for fatigue screening.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Fatigue check</span>
+              <select id="fatigueEnabled">
+                <option value="off" selected>Not included</option>
+                <option value="on">Include fatigue check</option>
+              </select>
+            </label>
+            <label>
+              <span>Stress range source</span>
+              <select id="fatigueStressSource">
+                <option value="calculated" selected>Calculated live-load hoop</option>
+                <option value="manual">User-entered stress range</option>
+              </select>
+            </label>
+            <label>
+              <span>Manual stress range</span>
+              <input id="fatigueStressRange" type="number" min="0" step="10" value="0" disabled>
+              <small>psi</small>
+            </label>
+            <label>
+              <span>Applied cycles</span>
+              <input id="fatigueCycles" type="number" min="0" step="1000" value="0">
+              <small>cycles</small>
+            </label>
+            <label>
+              <span>S-N exponent</span>
+              <input id="fatigueExponent" type="number" min="1" step="0.1" value="3">
+            </label>
+            <label>
+              <span>Fatigue constant C</span>
+              <input id="fatigueConstant" type="number" min="1" step="1000000000" value="1000000000000000">
+              <small>N x psi^m</small>
+            </label>
+          </div>
+          <div class="strain-summary" id="fatigueSummary">
+            Fatigue check is not included.
+          </div>
+        </section>
+
+        <section class="segment">
+          <div class="segment-heading">
+            <span class="segment-index">6</span>
+            <div>
+              <h2>Surface Loading Mitigation Plan</h2>
+              <p>Load-spreading mitigation and separate post-mitigation stress screening.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Mitigation type</span>
+              <select id="mitigationType">
+                <option value="none" selected>No mitigation</option>
+                <option value="steel_plate">Steel plate</option>
+                <option value="rig_mats">Rig mats</option>
+                <option value="wooden_bridge">Wooden bridge</option>
+                <option value="hollow_concrete_slab">Hollow concrete slab</option>
+                <option value="custom">Custom mitigation</option>
+              </select>
+            </label>
+            <label>
+              <span>Mitigation width</span>
+              <input id="mitigationWidth" type="number" min="0" step="1" value="0">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Mitigation length</span>
+              <input id="mitigationLength" type="number" min="0" step="1" value="0">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Mitigation thickness</span>
+              <input id="mitigationThickness" type="number" min="0" step="0.25" value="0">
+              <small>in</small>
+            </label>
+            <label>
+              <span>Load spread angle</span>
+              <input id="mitigationSpreadAngle" type="number" min="0" max="89" step="1" value="45">
+              <small>deg</small>
+            </label>
+            <label>
+              <span>Mitigation unit weight</span>
+              <input id="mitigationUnitWeight" type="number" min="0" step="1" value="0">
+              <small>pcf</small>
+            </label>
+          </div>
+          <div class="strain-summary" id="mitigationSummary">No mitigation is included.</div>
+        </section>
+
+        <div class="actions">
+          <button id="reportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateButton" type="button">Calculate</button>
+        </div>
+        <a id="reportDownloadLink" class="report-download-link" href="#" download="pipeline-crossing-assessment-report.pdf" hidden>
+          Download report PDF
+        </a>
+      </form>
+
+      <aside class="output-panel" aria-live="polite">
+        <section class="segment output-segment">
+          <div class="segment-heading">
+            <span class="segment-index">7</span>
+            <div>
+              <h2>Calculated Stress</h2>
+              <p>Assessment stress from hoop stress components and pre-existing bending strain.</p>
+            </div>
+          </div>
+
+          <div id="errorBox" class="error-box" hidden></div>
+
+          <div id="passFailBox" class="pass-fail-box pass-fail-neutral">
+            <span>Assessment</span>
+            <strong id="passFailStatus">Not calculated</strong>
+            <p id="passFailDetail">Run calculation to check total hoop stress against SMYS.</p>
+          </div>
+
+          <div class="result-hero">
+            <span>Assessment stress at MAOP</span>
+            <strong id="totalHoop">0 psi</strong>
+            <meter id="smysMeter" min="0" max="100" value="0"></meter>
+            <p id="smysText">0% of SMYS</p>
+          </div>
+
+          <div class="metrics">
+            <div>
+              <span>Live load hoop</span>
+              <strong id="liveHoop">0 psi</strong>
+            </div>
+            <div>
+              <span>Hoop stress subtotal</span>
+              <strong id="hoopSubtotal">0 psi</strong>
+            </div>
+            <div>
+              <span>Bending strain stress</span>
+              <strong id="bendingStrainStress">0 psi</strong>
+            </div>
+            <div>
+              <span>Total bending strain</span>
+              <strong id="totalBendingStrain">0 microstrain</strong>
+            </div>
+            <div>
+              <span>Fatigue status</span>
+              <strong id="fatigueStatus">Not checked</strong>
+            </div>
+            <div>
+              <span>Fatigue damage ratio</span>
+              <strong id="fatigueDamage">0</strong>
+            </div>
+            <div>
+              <span>Allowable fatigue cycles</span>
+              <strong id="fatigueAllowableCycles">0 cycles</strong>
+            </div>
+            <div>
+              <span>Fatigue stress range</span>
+              <strong id="fatigueStressRangeOutput">0 psi</strong>
+            </div>
+            <div>
+              <span>Mitigated assessment</span>
+              <strong id="mitigatedAssessment">Not applied</strong>
+            </div>
+            <div>
+              <span>Mitigated live hoop</span>
+              <strong id="mitigatedLiveHoop">0 psi</strong>
+            </div>
+            <div>
+              <span>Mitigated stress ratio</span>
+              <strong id="mitigatedStressRatio">0% SMYS</strong>
+            </div>
+            <div>
+              <span>Mitigation load factor</span>
+              <strong id="mitigationLoadFactor">1</strong>
+            </div>
+            <div>
+              <span>Soil hoop</span>
+              <strong id="soilHoop">0 psi</strong>
+            </div>
+            <div>
+              <span>Pressure hoop</span>
+              <strong id="pressureHoop">0 psi</strong>
+            </div>
+            <div>
+              <span>Live pressure at pipe</span>
+              <strong id="livePressure">0 psi</strong>
+            </div>
+            <div>
+              <span>Critical vehicle position</span>
+              <strong id="criticalPosition">0 in</strong>
+            </div>
+            <div>
+              <span>Zero-pressure total</span>
+              <strong id="zeroPressureTotal">0 psi</strong>
+            </div>
+          </div>
+
+          <div class="derived">
+            <h3>Derived Vehicle Load Model</h3>
+            <dl>
+              <div>
+                <dt>Point loads used</dt>
+                <dd id="pointLoadCount">0</dd>
+              </div>
+              <div>
+                <dt>Approx. load per point</dt>
+                <dd id="loadPerPoint">0 lb</dd>
+              </div>
+              <div>
+                <dt>Contact pressure check</dt>
+                <dd id="contactPressure">0 psi</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <main id="corlasPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">CL</span>
+          <div>
+            <h2>CorLAS Failure Pressure Calculation</h2>
+            <p>Crack-like flaw assessment based on the workbook macro and fracture mechanics workflow.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromCorlas" class="secondary-button" type="button">Back to Modules</button>
+          <button id="corlasReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateCorlasButton" type="button">Calculate CorLAS</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">1</span>
+          <div>
+            <h2>Pipe Geometry</h2>
+            <p>Dimensions are entered in millimetres, matching the source workbook.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <label>
+            <span>Outside diameter, D</span>
+            <input id="corlasDiameter" type="number" min="0.001" step="0.01" value="406.4">
+            <small>mm</small>
+          </label>
+          <label>
+            <span>Wall thickness, t</span>
+            <input id="corlasWallThickness" type="number" min="0.001" step="0.01" value="7.14">
+            <small>mm</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">2</span>
+          <div>
+            <h2>Crack Dimensions</h2>
+            <p>Current implementation follows the workbook semi-elliptical crack equations.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <label>
+            <span>Crack depth, a</span>
+            <input id="corlasCrackDepth" type="number" min="0.001" step="0.01" value="2.9">
+            <small>mm</small>
+          </label>
+          <label>
+            <span>Crack length, L</span>
+            <input id="corlasCrackLength" type="number" min="0.001" step="0.1" value="26">
+            <small>mm</small>
+          </label>
+          <label>
+            <span>Crack location</span>
+            <select id="corlasCrackLocation">
+              <option value="external" selected>External</option>
+              <option value="internal">Internal</option>
+            </select>
+          </label>
+          <label>
+            <span>Crack profile</span>
+            <select id="corlasCrackProfile">
+              <option value="semi_elliptical" selected>Semi-elliptical</option>
+              <option value="parabolic">Parabolic</option>
+              <option value="rectangular">Rectangular</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">3</span>
+          <div>
+            <h2>Material Properties</h2>
+            <p>Strength, elastic modulus, and fracture toughness inputs.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <label>
+            <span>Yield strength, σy</span>
+            <input id="corlasYieldStrength" type="number" min="0.001" step="1" value="359">
+            <small>MPa</small>
+          </label>
+          <label>
+            <span>Ultimate tensile strength, σu</span>
+            <input id="corlasTensileStrength" type="number" min="0.001" step="1" value="450">
+            <small>MPa</small>
+          </label>
+          <label>
+            <span>Elastic modulus, E</span>
+            <input id="corlasElasticModulus" type="number" min="0.001" step="1000" value="207000">
+            <small>MPa</small>
+          </label>
+          <label>
+            <span>CVN</span>
+            <input id="corlasCvn" type="number" min="0" step="0.1" value="18">
+            <small>J</small>
+          </label>
+          <label>
+            <span>Jc calculation method</span>
+            <select id="corlasToughnessMethod">
+              <option value="manual" selected>Manual Jc input</option>
+              <option value="eq17_cvn">Eq. 17: 12 CVN / Ac</option>
+            </select>
+          </label>
+          <label>
+            <span>Charpy net area, Ac</span>
+            <input id="corlasCharpyArea" type="number" min="0.001" step="0.001" value="0.124">
+            <small>in2</small>
+          </label>
+          <label>
+            <span>Fracture toughness, Jc</span>
+            <input id="corlasFractureToughness" type="number" min="0.001" step="1" value="225">
+            <small>J or Eq. 17 calculated value</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">4</span>
+          <div>
+            <h2>Solver Controls</h2>
+            <p>Workbook default flow stress coefficient and pressure increment are preloaded.</p>
+          </div>
+        </div>
+        <div class="grid">
+          <label>
+            <span>Flow stress coefficient, C</span>
+            <input id="corlasFlowCoefficient" type="number" min="0" max="1" step="0.01" value="0.5">
+          </label>
+          <label>
+            <span>Pressure step</span>
+            <input id="corlasPressureStep" type="number" min="0.0001" step="0.001" value="0.01">
+            <small>MPa</small>
+          </label>
+          <label>
+            <span>Maximum iterations</span>
+            <input id="corlasMaxIterations" type="number" min="1" step="1000" value="100000">
+          </label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading">
+          <span class="segment-index">5</span>
+          <div>
+            <h2>CorLAS Outputs</h2>
+            <p>Failure pressure, controlling mode, J-integral components, and workbook intermediate variables.</p>
+          </div>
+        </div>
+        <div id="corlasErrorBox" class="error-box" hidden></div>
+        <div id="corlasAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <strong id="corlasStatus">Not calculated</strong>
+          <p id="corlasStatusDetail" hidden></p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>P(fracture)</span><strong id="corlasFracturePressure">0 MPa</strong><small id="corlasFracturePressurePsi">0 psi</small></div>
+          <div><span>P(collapse)</span><strong id="corlasCollapsePressure">0 MPa</strong><small id="corlasCollapsePressurePsi">0 psi</small></div>
+          <div><span>P(failure)</span><strong id="corlasFailurePressure">0 MPa</strong><small id="corlasFailurePressurePsi">0 psi</small></div>
+          <div><span>Jt</span><strong id="corlasJt">0</strong></div>
+          <div><span>Je</span><strong id="corlasJe">0</strong></div>
+          <div><span>Jp</span><strong id="corlasJp">0</strong></div>
+          <div><span>Flow stress</span><strong id="corlasFlowStress">0 MPa</strong></div>
+          <div><span>Folias factor, M</span><strong id="corlasFoliasFactor">0</strong></div>
+          <div><span>Qf</span><strong id="corlasQf">0</strong></div>
+          <div><span>Fsf</span><strong id="corlasFsf">0</strong></div>
+          <div><span>n</span><strong id="corlasN">0</strong></div>
+          <div><span>σ local</span><strong id="corlasLocalStress">0 MPa</strong></div>
+          <div><span>εp</span><strong id="corlasPlasticStrain">0</strong></div>
+          <div><span>f3(n)</span><strong id="corlasF3">0</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="sccColonyPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">SCC</span>
+          <div>
+            <h2>SCC Crack Colony Assessment</h2>
+            <p>Screen interacting stress-corrosion crack colonies using equivalent crack geometry, fracture pressure, and pressure-cycle growth checks.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromSccColony" class="secondary-button" type="button">Back to Modules</button>
+          <button id="sccColonyReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateSccColonyButton" type="button">Calculate SCC Colony</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe, Material, and Pressure</h2><p>Metric pipe properties, fracture toughness, and assessment factor.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="sccDiameter" type="number" min="0.001" step="0.1" value="762"><small>mm</small></label>
+          <label><span>Wall thickness, t</span><input id="sccWallThickness" type="number" min="0.001" step="0.1" value="9.5"><small>mm</small></label>
+          <label><span>MAOP</span><input id="sccMaop" type="number" min="0.001" step="0.01" value="6.9"><small>MPa</small></label>
+          <label><span>SMYS</span><input id="sccSmys" type="number" min="0.001" step="1" value="448"><small>MPa</small></label>
+          <label><span>SMTS</span><input id="sccSmts" type="number" min="0.001" step="1" value="535"><small>MPa</small></label>
+          <label><span>Fracture toughness, Kmat</span><input id="sccToughness" type="number" min="0.001" step="1" value="95"><small>MPa*m^0.5</small></label>
+          <label><span>Assessment factor</span><input id="sccAssessmentFactor" type="number" min="0.01" step="0.01" value="0.72"><small>x failure pressure</small></label>
+          <label><span>Crack orientation</span><select id="sccOrientation"><option value="axial" selected>Axial SCC</option><option value="circumferential">Circumferential SCC</option></select><small>stress direction</small></label>
+          <label><span>Geometry factor, Y</span><input id="sccGeometryFactor" type="number" min="0.001" step="0.01" value="1.12"></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Crack Colony Geometry</h2><p>Use comma-separated values. Depths and lengths must have one value per crack; spacings are between adjacent cracks.</p></div></div>
+        <div class="grid">
+          <label class="wide-field"><span>Crack depths</span><input id="sccDepths" type="text" value="1.8, 2.4, 2.1, 1.6"><small>mm</small></label>
+          <label class="wide-field"><span>Crack lengths</span><input id="sccLengths" type="text" value="18, 24, 20, 15"><small>mm</small></label>
+          <label class="wide-field"><span>Axial spacings</span><input id="sccSpacings" type="text" value="8, 12, 30"><small>mm between adjacent cracks</small></label>
+        </div>
+        <div class="dent-chart-card scc-colony-card">
+          <div class="chart-heading">
+            <h3>SCC Crack Colony Layout</h3>
+            <span id="sccColonyVisualSummary">Edit crack depths, lengths, and spacings to visualize the colony.</span>
+          </div>
+          <div id="sccColonyVisualization" class="scc-colony-visual" role="img" aria-label="SCC crack colony visualization"></div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>Pressure Cycling</h2><p>Optional Paris-law screening for growth from equivalent colony depth to 80% wall thickness.</p></div></div>
+        <div class="grid">
+          <label><span>Pressure cycle range</span><input id="sccPressureRange" type="number" min="0" step="0.01" value="1.5"><small>MPa</small></label>
+          <label><span>Paris C</span><input id="sccParisC" type="number" min="1e-20" step="1e-13" value="0.000000000001"></label>
+          <label><span>Paris m</span><input id="sccParisM" type="number" min="0.001" step="0.1" value="3"></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">4</span><div><h2>SCC Colony Outputs</h2><p>Equivalent colony geometry, interaction severity, fracture/collapse pressure, and remaining pressure-cycle life.</p></div></div>
+        <div id="sccErrorBox" class="error-box" hidden></div>
+        <div id="sccAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="sccStatus">Not calculated</strong>
+          <p id="sccDisposition">Run SCC crack colony assessment to evaluate the interacting crack group.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Failure pressure</span><strong id="sccFailurePressure">0 MPa</strong></div>
+          <div><span>Allowable pressure</span><strong id="sccAllowablePressure">0 MPa</strong></div>
+          <div><span>MAOP / allowable</span><strong id="sccPressureRatio">0</strong></div>
+          <div><span>Colony class</span><strong id="sccColonyClass">-</strong></div>
+          <div><span>Interaction factor</span><strong id="sccInteractionFactor">0</strong></div>
+          <div><span>Crack count</span><strong id="sccCrackCount">0</strong></div>
+          <div><span>Equivalent depth</span><strong id="sccEquivalentDepth">0 mm</strong></div>
+          <div><span>Equivalent length</span><strong id="sccEquivalentLength">0 mm</strong></div>
+          <div><span>Depth / thickness</span><strong id="sccDepthRatio">0%</strong></div>
+          <div><span>K ratio at MAOP</span><strong id="sccKr">0</strong></div>
+          <div><span>Collapse pressure</span><strong id="sccCollapsePressure">0 MPa</strong></div>
+          <div><span>Fracture pressure</span><strong id="sccFracturePressure">0 MPa</strong></div>
+          <div><span>Folias factor, M</span><strong id="sccFolias">0</strong></div>
+          <div><span>Remaining cycles</span><strong id="sccRemainingCycles">Not checked</strong></div>
+          <div><span>Crack growth status</span><strong id="sccCrackGrowthStatus">-</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="crackGrowthPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">CG</span>
+          <div>
+            <h2>Crack Growth / Fatigue Life</h2>
+            <p>Estimate Paris-law crack-growth life from an initial crack size to a selected critical crack size under cyclic stress range.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromCrackGrowth" class="secondary-button" type="button">Back to Modules</button>
+          <button id="crackGrowthReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateCrackGrowthButton" type="button">Calculate Crack Growth</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Crack and Loading Inputs</h2><p>Use consistent metric fatigue data for the flaw size and cyclic stress range.</p></div></div>
+        <div class="grid">
+          <label><span>Initial crack size</span><input id="crackGrowthInitialCrack" type="number" min="0.001" step="0.1" value="1"><small>mm</small></label>
+          <label><span>Critical crack size</span><input id="crackGrowthCriticalCrack" type="number" min="0.001" step="0.1" value="6"><small>mm</small></label>
+          <label><span>Stress range, delta sigma</span><input id="crackGrowthStressRange" type="number" min="0.001" step="1" value="80"><small>MPa</small></label>
+          <label><span>Geometry factor, Y</span><input id="crackGrowthGeometryFactor" type="number" min="0.001" step="0.01" value="1.12"></label>
+          <label><span>Threshold delta K</span><input id="crackGrowthThresholdK" type="number" min="0" step="0.1" value="0"><small>MPa*m^0.5</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Paris Law and Life Check</h2><p>da/dN = C(delta K - threshold)^m, integrated in crack-size increments.</p></div></div>
+        <div class="grid">
+          <label><span>Paris C</span><input id="crackGrowthParisC" type="number" min="1e-20" step="1e-13" value="0.000000000001"></label>
+          <label><span>Paris m</span><input id="crackGrowthParisM" type="number" min="0.001" step="0.1" value="3"></label>
+          <label><span>Integration increment</span><input id="crackGrowthIncrement" type="number" min="0.0001" step="0.001" value="0.001"><small>mm</small></label>
+          <label><span>Applied cycles</span><input id="crackGrowthAppliedCycles" type="number" min="0" step="1000" value="100000"></label>
+          <label><span>Life factor</span><input id="crackGrowthLifeFactor" type="number" min="0.001" step="0.05" value="1"><small>x estimated life</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>Crack Growth Outputs</h2><p>Paris-law fatigue life, damage ratio, remaining cycles, and stress-intensity range checks.</p></div></div>
+        <div id="crackGrowthErrorBox" class="error-box" hidden></div>
+        <div id="crackGrowthAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="crackGrowthStatus">Not calculated</strong>
+          <p id="crackGrowthDisposition">Run crack-growth fatigue life calculation.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Estimated life</span><strong id="crackGrowthEstimatedCycles">0 cycles</strong></div>
+          <div><span>Factored life</span><strong id="crackGrowthFactoredCycles">0 cycles</strong></div>
+          <div><span>Applied cycles</span><strong id="crackGrowthAppliedCyclesOutput">0 cycles</strong></div>
+          <div><span>Remaining cycles</span><strong id="crackGrowthRemainingCycles">0 cycles</strong></div>
+          <div><span>Damage ratio</span><strong id="crackGrowthDamageRatio">0</strong></div>
+          <div><span>Initial delta K</span><strong id="crackGrowthInitialDeltaK">0</strong></div>
+          <div><span>Critical delta K</span><strong id="crackGrowthCriticalDeltaK">0</strong></div>
+          <div><span>Initial growth rate</span><strong id="crackGrowthInitialRate">0 mm/cycle</strong></div>
+          <div><span>Critical growth rate</span><strong id="crackGrowthCriticalRate">0 mm/cycle</strong></div>
+          <div><span>Integration steps</span><strong id="crackGrowthSteps">0</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="iliScreeningPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">ILI</span>
+          <div>
+            <h2>ILI Feature Screening and Ranking</h2>
+            <p>Screen multiple ILI-reported anomalies and rank them by pressure margin, depth, length, and feature type.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromIliScreening" class="secondary-button" type="button">Back to Modules</button>
+          <button id="iliScreeningReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateIliScreeningButton" type="button">Rank ILI Features</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe and Screening Criteria</h2><p>Pressure-screening values used to classify each ILI feature.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="iliDiameter" type="number" min="0.001" step="0.1" value="762"><small>mm</small></label>
+          <label><span>Wall thickness, t</span><input id="iliWallThickness" type="number" min="0.001" step="0.1" value="9.5"><small>mm</small></label>
+          <label><span>MAOP</span><input id="iliMaop" type="number" min="0.001" step="0.01" value="6.9"><small>MPa</small></label>
+          <label><span>SMYS</span><input id="iliSmys" type="number" min="0.001" step="1" value="448"><small>MPa</small></label>
+          <label><span>Assessment factor</span><input id="iliAssessmentFactor" type="number" min="0.01" step="0.01" value="0.72"></label>
+          <label><span>Immediate action ratio</span><input id="iliRepairRatio" type="number" min="0.001" step="0.05" value="1"><small>MAOP / allowable</small></label>
+          <label><span>High-priority ratio</span><input id="iliMonitorRatio" type="number" min="0.001" step="0.05" value="0.8"><small>MAOP / allowable</small></label>
+          <label><span>Depth watch threshold</span><input id="iliDepthWatch" type="number" min="0.001" step="1" value="50"><small>% wall</small></label>
+          <label><span>Class location</span><select id="iliClassLocation"><option value="1" selected>Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option></select></label>
+          <label><span>Prediction horizon</span><input id="iliPredictionYears" type="number" min="0.1" step="0.5" value="5"><small>years</small></label>
+          <label><span>Annual corrosion growth</span><input id="iliGrowthRate" type="number" min="0" step="0.1" value="1"><small>% wall / year</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Screening Methods and Fatigue</h2><p>Select one or more methods. The workflow reports the most conservative method for each feature and overall.</p></div></div>
+        <div class="grid">
+          <label><span>Primary calculation method</span><select id="iliPrimaryMethod">
+            <option value="modified_b31g" selected>Modified B31.G</option>
+            <option value="asme_b31g">ASME B31G</option>
+            <option value="rstreng_simplified">RSTRENG simplified</option>
+            <option value="corlas">CorLAS crack-like flaw</option>
+            <option value="scc_colony">SCC crack colony</option>
+            <option value="reported_pressure">ILI reported failure pressure</option>
+          </select></label>
+          <label class="wide-field"><span>Screening methods</span><select id="iliScreeningMethods" multiple size="5">
+            <option value="modified_b31g" selected>Modified B31.G</option>
+            <option value="asme_b31g" selected>ASME B31G</option>
+            <option value="rstreng_simplified" selected>RSTRENG simplified</option>
+            <option value="corlas" selected>CorLAS crack-like flaw</option>
+            <option value="scc_colony" selected>SCC crack colony</option>
+            <option value="reported_pressure">ILI reported failure pressure</option>
+            <option value="crack_fracture" selected>Crack/SCC fracture screen</option>
+          </select><small>Hold Ctrl/Cmd to select multiple methods.</small></label>
+          <label><span>Fracture toughness, Kmat</span><input id="iliToughness" type="number" min="0.001" step="1" value="95"><small>MPa*m^0.5</small></label>
+          <label><span>Include fatigue</span><select id="iliFatigueEnabled"><option value="yes" selected>Yes</option><option value="no">No</option></select></label>
+          <label><span>Stress range</span><input id="iliStressRange" type="number" min="0" step="1" value="80"><small>MPa</small></label>
+          <label><span>Existing bending strain</span><input id="iliBendingStrain" type="number" min="0" step="0.01" value="0"><small>%</small></label>
+          <label><span>Cycles per year</span><input id="iliCyclesPerYear" type="number" min="0" step="100" value="1000"></label>
+          <label><span>Applied cycles</span><input id="iliAppliedCycles" type="number" min="0" step="1000" value="10000"></label>
+          <label><span>Paris C</span><input id="iliParisC" type="number" min="1e-20" step="1e-13" value="0.000000000001"></label>
+          <label><span>Paris m</span><input id="iliParisM" type="number" min="0.001" step="0.1" value="3"></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>ILI Feature List</h2><p>Use comma-separated values. Each row-like list must have one value per feature.</p></div></div>
+        <div class="file-import-row">
+          <label>
+            <span>Upload ILI feature list</span>
+            <input id="iliFeatureFile" type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <small>CSV/TXT columns: id, type, depth, length, clock, distance, pressure</small>
+          </label>
+          <span id="iliFileStatus">No file loaded.</span>
+        </div>
+        <div class="grid">
+          <label class="wide-field"><span>Feature IDs</span><input id="iliFeatureIds" type="text" value="F-101, F-102, F-103, F-104"></label>
+          <label class="wide-field"><span>Feature types</span><input id="iliFeatureTypes" type="text" value="metal_loss, crack, dent, metal_loss"><small>metal_loss, crack, dent, scc</small></label>
+          <label class="wide-field"><span>Depths</span><input id="iliDepths" type="text" value="42, 58, 18, 64"><small>% wall</small></label>
+          <label class="wide-field"><span>Lengths</span><input id="iliLengths" type="text" value="110, 45, 75, 180"><small>mm</small></label>
+          <label class="wide-field"><span>Clock positions</span><input id="iliClockPositions" type="text" value="3:00, 6:00, 12:00, 4:30"></label>
+          <label class="wide-field"><span>Distances</span><input id="iliDistances" type="text" value="1250.4, 1258.8, 1280.2, 1315.6"><small>m</small></label>
+          <label class="wide-field"><span>Reported failure pressures</span><input id="iliReportedPressures" type="text" value="0, 8.1, 0, 6.8"><small>MPa, use 0 when unavailable</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">4</span><div><h2>Ranked ILI Outputs and Risk Assessment</h2><p>Choose a calculation method for each feature, then select Re-run ILI Features to apply the new screening methods.</p></div></div>
+        <div id="iliErrorBox" class="error-box" hidden></div>
+        <div id="iliAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="iliStatus">Not calculated</strong>
+          <p id="iliDisposition">Run ILI feature screening to rank features.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Feature count</span><strong id="iliFeatureCount">0</strong></div>
+          <div><span>Immediate action</span><strong id="iliImmediateCount">0</strong></div>
+          <div><span>High priority</span><strong id="iliHighCount">0</strong></div>
+          <div><span>Monitor</span><strong id="iliMonitorCount">0</strong></div>
+          <div><span>Most conservative method</span><strong id="iliConservativeMethod">-</strong></div>
+          <div><span>Highest risk feature</span><strong id="iliHighestRiskFeature">-</strong></div>
+          <div><span>Predicted failures</span><strong id="iliPredictedFailures">0</strong></div>
+          <div><span>Risk class</span><strong id="iliRiskClass">-</strong></div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-user-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Feature</th>
+                <th>Type</th>
+                <th>Distance</th>
+                <th>Depth</th>
+                <th>Length</th>
+                <th>Calculation method</th>
+                <th>MAOP/Allow.</th>
+                <th>Fatigue life</th>
+                <th>Predicted failure</th>
+                <th>Risk</th>
+                <th>Priority</th>
+                <th>Recommended action</th>
+              </tr>
+            </thead>
+            <tbody id="iliRankingTableBody">
+              <tr><td colspan="13">Run screening to rank ILI features.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <main id="annexKPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">K</span>
+          <div>
+            <h2>Engineering Criticality Assessment - CSA Z662 Annex K</h2>
+            <p>Girth weld flaw screening based on the Annex K workbook and workflow document.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromAnnexK" class="secondary-button" type="button">Back to Modules</button>
+          <button id="ecaReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateAnnexKButton" type="button">Calculate ECA</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Asset Geometry & Material Inputs</h2><p>Core dimensions, strengths, and toughness values.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="ecaDiameter" type="number" min="0.001" step="0.1" value="508"><small>mm</small></label>
+          <label><span>Nominal wall thickness, t</span><input id="ecaWallThickness" type="number" min="0.001" step="0.1" value="12.7"><small>mm</small></label>
+          <label><span>SMYS</span><input id="ecaSmys" type="number" min="0.001" step="1" value="483"><small>MPa</small></label>
+          <label><span>Actual yield strength - weld</span><input id="ecaWeldYield" type="number" min="0.001" step="1" value="520"><small>MPa</small></label>
+          <label><span>Actual yield strength - base</span><input id="ecaBaseYield" type="number" min="0.001" step="1" value="505"><small>MPa</small></label>
+          <label><span>Elastic modulus, E</span><input id="ecaElasticModulus" type="number" min="0.001" step="1000" value="200000"><small>MPa</small></label>
+          <label><span>Poisson's ratio, v</span><input id="ecaPoisson" type="number" min="0" max="0.49" step="0.01" value="0.3"></label>
+          <label><span>Thermal coefficient, alpha</span><input id="ecaThermalCoeff" type="number" min="0" step="0.000001" value="0.0000117"><small>1/C</small></label>
+          <label><span>Characteristic toughness, Kmat</span><input id="ecaKmat" type="number" min="0.001" step="1" value="95"><small>MPa*m^0.5</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Applied Loads & Flaw Dimensions</h2><p>Pressure, thermal loading, bending, high-low, and flaw sizing uncertainty.</p></div></div>
+        <div class="grid">
+          <label><span>Max operating pressure, P</span><input id="ecaPressure" type="number" min="0" step="0.01" value="9.93"><small>MPa</small></label>
+          <label><span>Temperature change, dT</span><input id="ecaDeltaT" type="number" step="1" value="45"><small>C</small></label>
+          <label><span>External bending moment, M</span><input id="ecaBendingMoment" type="number" min="0" step="1" value="120"><small>kN*m</small></label>
+          <label><span>High-low misalignment, e</span><input id="ecaMisalignment" type="number" min="0" step="0.1" value="1.5"><small>mm</small></label>
+          <label><span>Measured flaw height</span><input id="ecaFlawHeight" type="number" min="0.001" step="0.1" value="2"><small>mm</small></label>
+          <label><span>Measured flaw length</span><input id="ecaFlawLength" type="number" min="0.001" step="0.1" value="25"><small>mm</small></label>
+          <label><span>NDE height allowance</span><input id="ecaHeightAllowance" type="number" min="0" step="0.1" value="0.5"><small>mm</small></label>
+          <label><span>NDE length allowance</span><input id="ecaLengthAllowance" type="number" min="0" step="0.1" value="2"><small>mm</small></label>
+          <label><span>Service type</span><select id="ecaServiceType"><option value="liquid" selected>Liquid</option><option value="gas">Gas</option></select></label>
+          <label><span>Longitudinal strain demand</span><input id="ecaLongitudinalStrain" type="number" min="0" step="0.01" value="0"><small>%</small></label>
+          <label><span>Residual stress factor</span><input id="ecaResidualFactor" type="number" min="0" max="1" step="0.05" value="0.6"><small>x weld YS</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>CSA Z662 Annex K ECA Outputs</h2><p>Workbook formula outputs plus workflow-based level, gateway, and disposition checks.</p></div></div>
+        <div id="ecaErrorBox" class="error-box" hidden></div>
+        <div id="ecaAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="ecaStatus">Not calculated</strong>
+          <p id="ecaDisposition">Run ECA calculation to evaluate Annex K screening.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Effective flaw height</span><strong id="ecaEffectiveHeight">0 mm</strong></div>
+          <div><span>Effective flaw length</span><strong id="ecaEffectiveLength">0 mm</strong></div>
+          <div><span>Misalignment SCF</span><strong id="ecaScf">0</strong></div>
+          <div><span>Hoop stress</span><strong id="ecaHoopStress">0 MPa</strong></div>
+          <div><span>Restrained axial stress</span><strong id="ecaAxialStress">0 MPa</strong></div>
+          <div><span>Strength mismatch ratio</span><strong id="ecaMismatch">0</strong></div>
+          <div><span>Load ratio, Lr</span><strong id="ecaLr">0</strong></div>
+          <div><span>Fracture ratio, Kr</span><strong id="ecaKr">0</strong></div>
+          <div><span>FAD boundary</span><strong id="ecaFadBoundary">0</strong></div>
+          <div><span>Assessment level</span><strong id="ecaAssessmentLevel">-</strong></div>
+          <div><span>Gateway checks</span><strong id="ecaGatewayChecks">-</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="dentPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">D</span>
+          <div>
+            <h2>Statistical Dent Assessment</h2>
+            <p>Monte Carlo strain assessment based on the attached ASME B31.8 statistical dent workbook and FFS framework.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromDent" class="secondary-button" type="button">Back to Modules</button>
+          <button id="dentReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateDentButton" type="button">Calculate Dent Assessment</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe & Dent Inputs</h2><p>Radii are negative for inward dents, matching the workbook convention.</p></div></div>
+        <div class="grid">
+          <label><span>Pipe outside diameter, OD</span><input id="dentOd" type="number" min="0.001" step="0.1" value="24"><small>in</small></label>
+          <label><span>Wall thickness, t</span><input id="dentWallThickness" type="number" min="0.001" step="0.001" value="0.5"><small>in</small></label>
+          <label><span>Mean circumferential radius, r1</span><input id="dentCircRadius" type="number" step="0.1" value="-15"><small>in</small></label>
+          <label><span>Mean longitudinal radius, r2</span><input id="dentLongRadius" type="number" step="0.1" value="-10"><small>in</small></label>
+          <label><span>Dent depth, d</span><input id="dentDepth" type="number" min="0.001" step="0.1" value="3"><small>in</small></label>
+          <label><span>Dent length, L</span><input id="dentLength" type="number" min="0.001" step="0.1" value="14"><small>in</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Statistical Simulation</h2><p>Measurement uncertainty is applied to dent radii, depth, and length.</p></div></div>
+        <div class="grid">
+          <label><span>Measurement error fraction</span><input id="dentMeasurementError" type="number" min="0" step="0.01" value="0.1"><small>0.1 = 10%</small></label>
+          <label><span>Strain limit</span><input id="dentStrainLimit" type="number" min="0.0001" step="0.001" value="0.06"><small>6% = 0.06</small></label>
+          <label><span>Number of simulations</span><input id="dentSimulationCount" type="number" min="100" step="1000" value="100000"></label>
+          <label><span>Random seed</span><input id="dentSeed" type="number" step="1" value="8675309"></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>Dent Assessment Outputs</h2><p>Statistical strain summary and FFS disposition.</p></div></div>
+        <div id="dentErrorBox" class="error-box" hidden></div>
+        <div id="dentAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="dentStatus">Not calculated</strong>
+          <p id="dentDisposition">Run statistical dent assessment to evaluate strain exceedance.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Mean peak strain</span><strong id="dentMeanStrain">0%</strong></div>
+          <div><span>Std dev strain</span><strong id="dentStdStrain">0%</strong></div>
+          <div><span>95th percentile strain</span><strong id="dentP95Strain">0%</strong></div>
+          <div><span>Probability above limit</span><strong id="dentProbability">0%</strong></div>
+          <div><span>Dent depth / OD</span><strong id="dentDepthPercent">0%</strong></div>
+          <div><span>Exceedance count</span><strong id="dentExceedCount">0</strong></div>
+          <div><span>Framework notes</span><strong id="dentFrameworkNotes">-</strong></div>
+        </div>
+        <div class="dent-chart-card">
+          <div class="chart-heading">
+            <h3>Peak Strain Cumulative Distribution (Monte Carlo)</h3>
+            <span id="dentChartSummary">Run calculation to plot the simulated strain distribution.</span>
+          </div>
+          <div id="dentDistributionChart" class="dent-distribution-chart" role="img" aria-label="Peak strain cumulative distribution plot"></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="b31gPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">B31G</span>
+          <div>
+            <h2>Modified B31.G Calculation</h2>
+            <p>0.85dL Modified B31G metal-loss assessment using the equations from the attached reference paper.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromB31g" class="secondary-button" type="button">Back to Modules</button>
+          <button id="b31gReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateB31gButton" type="button">Calculate Modified B31.G</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe & Defect Inputs</h2><p>Metric inputs follow the Modified B31G equation form from the paper.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="b31gDiameter" type="number" min="0.001" step="0.1" value="406.4"><small>mm</small></label>
+          <label><span>Wall thickness, t</span><input id="b31gWallThickness" type="number" min="0.001" step="0.01" value="7.14"><small>mm</small></label>
+          <label><span>MAOP</span><input id="b31gMaop" type="number" min="0" step="0.01" value="7"><small>MPa</small></label>
+          <label><span>SMYS</span><input id="b31gSmys" type="number" min="0.001" step="1" value="359"><small>MPa</small></label>
+          <label><span>SMTS</span><input id="b31gSmts" type="number" min="0.001" step="1" value="455"><small>MPa</small></label>
+          <label><span>Assessment factor</span><input id="b31gAssessmentFactor" type="number" min="0.01" step="0.01" value="0.72"><small>x failure pressure</small></label>
+          <label><span>Defect depth, d</span><input id="b31gDepth" type="number" min="0.001" step="0.1" value="2.5"><small>mm</small></label>
+          <label><span>Defect length, L</span><input id="b31gLength" type="number" min="0.001" step="0.1" value="50"><small>mm</small></label>
+          <label><span>Flow stress cap</span><select id="b31gCapFlow"><option value="yes" selected>Cap at SMTS</option><option value="no">SMYS + 69 MPa only</option></select><small>Modified B31G setting</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Modified B31.G Outputs</h2><p>Factored pressure check and intermediate equation values.</p></div></div>
+        <div id="b31gErrorBox" class="error-box" hidden></div>
+        <div id="b31gAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="b31gStatus">Not calculated</strong>
+          <p id="b31gDisposition">Run Modified B31.G calculation to evaluate the defect.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Failure pressure</span><strong id="b31gFailurePressure">0 MPa</strong></div>
+          <div><span>Allowable pressure</span><strong id="b31gAllowablePressure">0 MPa</strong></div>
+          <div><span>MAOP / allowable</span><strong id="b31gPressureRatio">0</strong></div>
+          <div><span>Folias factor, M</span><strong id="b31gFolias">0</strong></div>
+          <div><span>z = L^2/(Dt)</span><strong id="b31gZ">0</strong></div>
+          <div><span>Flow stress</span><strong id="b31gFlowStress">0 MPa</strong></div>
+          <div><span>Failure stress</span><strong id="b31gFailureStress">0 MPa</strong></div>
+          <div><span>Depth / thickness</span><strong id="b31gDepthRatio">0%</strong></div>
+          <div><span>Folias equation</span><strong id="b31gFoliasEquation">-</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="rstrengPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">RST</span>
+          <div>
+            <h2>RSTRENG Effective Area Calculation</h2>
+            <p>Metal-loss remaining strength assessment using measured corrosion depth profile effective area.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromRstreng" class="secondary-button" type="button">Back to Modules</button>
+          <button id="rstrengReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateRstrengButton" type="button">Calculate RSTRENG</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe Inputs</h2><p>Metric pipe, pressure, material, and assessment factor inputs.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="rstrengDiameter" type="number" min="0.001" step="0.1" value="406.4"><small>mm</small></label>
+          <label><span>Wall thickness, t</span><input id="rstrengWallThickness" type="number" min="0.001" step="0.01" value="7.14"><small>mm</small></label>
+          <label><span>MAOP</span><input id="rstrengMaop" type="number" min="0" step="0.01" value="7"><small>MPa</small></label>
+          <label><span>SMYS</span><input id="rstrengSmys" type="number" min="0.001" step="1" value="359"><small>MPa</small></label>
+          <label><span>SMTS</span><input id="rstrengSmts" type="number" min="0.001" step="1" value="455"><small>MPa</small></label>
+          <label><span>Assessment factor</span><input id="rstrengAssessmentFactor" type="number" min="0.01" step="0.01" value="0.72"><small>x failure pressure</small></label>
+          <label><span>Flow stress cap</span><select id="rstrengCapFlow"><option value="yes" selected>Cap at SMTS</option><option value="no">SMYS + 69 MPa only</option></select><small>Effective-area setting</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Corrosion Depth Profile</h2><p>Enter comma-separated axial stations and measured metal-loss depths. Stations and depths must have matching counts.</p></div></div>
+        <div class="grid">
+          <label class="wide-field"><span>Stations</span><input id="rstrengStations" type="text" value="0, 25, 50, 75, 100, 125, 150"><small>mm from defect start</small></label>
+          <label class="wide-field"><span>Depths</span><input id="rstrengDepths" type="text" value="0.6, 2.4, 3.8, 4.1, 3.0, 1.4, 0.5"><small>mm metal loss at each station</small></label>
+        </div>
+        <div class="dent-chart-card corrosion-profile-card">
+          <div class="chart-heading">
+            <h3>Corrosion Depth Profile</h3>
+            <span id="rstrengProfileSummary">Edit stations and depths to visualize the measured metal-loss profile.</span>
+          </div>
+          <div id="rstrengProfileChart" class="corrosion-profile-chart" role="img" aria-label="Corrosion depth profile visualization"></div>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>RSTRENG Outputs</h2><p>Governing effective-area segment and factored pressure check.</p></div></div>
+        <div id="rstrengErrorBox" class="error-box" hidden></div>
+        <div id="rstrengAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="rstrengStatus">Not calculated</strong>
+          <p id="rstrengDisposition">Run RSTRENG effective area calculation to evaluate the corrosion profile.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Failure pressure</span><strong id="rstrengFailurePressure">0 MPa</strong></div>
+          <div><span>Allowable pressure</span><strong id="rstrengAllowablePressure">0 MPa</strong></div>
+          <div><span>MAOP / allowable</span><strong id="rstrengPressureRatio">0</strong></div>
+          <div><span>Governing segment</span><strong id="rstrengSegment">-</strong></div>
+          <div><span>Effective area</span><strong id="rstrengEffectiveArea">0 mm2</strong></div>
+          <div><span>Area ratio</span><strong id="rstrengAreaRatio">0%</strong></div>
+          <div><span>Max depth / thickness</span><strong id="rstrengMaxDepthRatio">0%</strong></div>
+          <div><span>Average depth</span><strong id="rstrengAverageDepth">0 mm</strong></div>
+          <div><span>Folias factor, M</span><strong id="rstrengFolias">0</strong></div>
+          <div><span>z = L^2/(Dt)</span><strong id="rstrengZ">0</strong></div>
+          <div><span>Flow stress</span><strong id="rstrengFlowStress">0 MPa</strong></div>
+          <div><span>Failure stress</span><strong id="rstrengFailureStress">0 MPa</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <main id="prciDentPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">PRCI</span>
+          <div>
+            <h2>PRCI Level 2 Dent Assessment</h2>
+            <p>Level 2 dent screening based on the attached PRCI workbook macro, with optional Paris-law crack-growth life.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromPrciDent" class="secondary-button" type="button">Back to Modules</button>
+          <button id="prciDentReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculatePrciDentButton" type="button">Calculate PRCI Dent</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Level 2 Workbook Inputs</h2><p>Inputs mirror the workbook Level 2 sheet cells B2 through B9.</p></div></div>
+        <div class="grouped-inputs">
+          <div class="input-group-box">
+            <h3>Pipeline Information</h3>
+            <div class="grid compact-grid">
+              <label><span>Pipe OD</span><input id="prciDentOd" type="number" min="0.001" step="0.1" value="406.4"><small>mm</small></label>
+              <label><span>Wall thickness</span><input id="prciDentWallThickness" type="number" min="0.001" step="0.1" value="12.5"><small>mm</small></label>
+              <label><span>Operating pressure</span><input id="prciDentPressure" type="number" min="0.001" step="0.01" value="10"><small>MPa</small></label>
+              <label><span>SMYS</span><input id="prciDentSmys" type="number" min="0.001" step="1" value="359"><small>MPa</small></label>
+            </div>
+          </div>
+          <div class="input-group-box">
+            <h3>Dent Information</h3>
+            <div class="grid compact-grid">
+              <label><span>Dent depth</span><input id="prciDentDepth" type="number" min="0.001" step="0.1" value="3"><small>mm</small></label>
+              <label><span>Dent radius</span><input id="prciDentRadius" type="number" min="0.001" step="0.1" value="3"><small>mm</small></label>
+            </div>
+          </div>
+          <div class="input-group-box">
+            <h3>Fatigue Screening</h3>
+            <div class="grid compact-grid">
+              <label><span>Stress cycles</span><input id="prciDentCycles" type="number" min="1" step="1" value="10"></label>
+              <label><span>Stress concentration factor</span><input id="prciDentScf" type="number" min="0.001" step="0.01" value="0.5"></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Fatigue Crack Growth</h2><p>Optional simplified Paris-law loop from the workbook macro.</p></div></div>
+        <div class="grid">
+          <label><span>Include crack growth</span><select id="prciDentCrackGrowthEnabled"><option value="yes" selected>Yes</option><option value="no">No</option></select></label>
+          <label><span>Initial crack size</span><input id="prciDentInitialCrack" type="number" min="0.001" step="0.1" value="1"><small>mm</small></label>
+          <label><span>Critical crack size</span><input id="prciDentCriticalCrack" type="number" min="0.001" step="0.1" value="6"><small>mm</small></label>
+          <label><span>Stress range, delta sigma</span><input id="prciDentStressRange" type="number" min="0.001" step="1" value="80"><small>MPa</small></label>
+          <label><span>Paris C</span><input id="prciDentParisC" type="number" min="1e-20" step="1e-13" value="0.000000000001"></label>
+          <label><span>Paris m</span><input id="prciDentParisM" type="number" min="0.001" step="0.1" value="3"></label>
+          <label><span>Integration increment</span><input id="prciDentCrackIncrement" type="number" min="0.0001" step="0.001" value="0.001"><small>mm</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>PRCI Level 2 Outputs</h2><p>Workbook outputs plus optional crack-growth fatigue life.</p></div></div>
+        <div id="prciDentErrorBox" class="error-box" hidden></div>
+        <div id="prciDentAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="prciDentStatus">Not calculated</strong>
+          <p id="prciDentResult">Run PRCI Level 2 dent assessment.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Dent depth (%)</span><strong id="prciDentDepthPercent">0%</strong></div>
+          <div><span>Hoop stress</span><strong id="prciDentHoopStress">0 MPa</strong></div>
+          <div><span>Bending strain</span><strong id="prciDentBendingStrain">0</strong></div>
+          <div><span>Equivalent stress</span><strong id="prciDentEquivalentStress">0 MPa</strong></div>
+          <div><span>Fatigue life</span><strong id="prciDentFatigueLife">0 cycles</strong></div>
+          <div><span>Remaining strength factor</span><strong id="prciDentRsf">0</strong></div>
+          <div><span>Crack growth life</span><strong id="prciDentCrackGrowthLife">Not checked</strong></div>
+          <div><span>Crack growth status</span><strong id="prciDentCrackGrowthStatus">-</strong></div>
+        </div>
+        <div class="criteria-panel">
+          <h3>Repair / Acceptance Criteria</h3>
+          <ul id="prciDentCriteriaList">
+            <li>Run PRCI Level 2 dent assessment to show the reason for repair required or not required.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <main id="iliToFeaPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">AUTO</span>
+          <div>
+            <h2>Automated ILI-to-FEA Defect Assessment</h2>
+            <p>Translate an ILI feature list into model-ready anomaly geometry, interaction models, fatigue and crack-growth screening, and a governing maximum MOP.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromIliToFea" class="secondary-button" type="button">Back to Modules</button>
+          <button id="iliToFeaReportButton" class="secondary-button" type="button">Export Report</button>
+          <button id="calculateIliToFeaButton" type="button">Build and Assess FEA Models</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipeline Information</h2><p>Define pipe geometry, material, operating conditions, class location, and mill weld type before configuring the assessment.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter</span><input id="iliToFeaOd" type="number" min="0.001" step="0.1" value="762"><small>mm</small></label>
+          <label><span>Wall thickness</span><input id="iliToFeaWallThickness" type="number" min="0.001" step="0.1" value="9.5"><small>mm</small></label>
+          <label><span>Current MAOP</span><input id="iliToFeaMaop" type="number" min="0.001" step="0.01" value="6.9"><small>MPa</small></label>
+          <label><span>Class location</span><select id="iliToFeaClassLocation"><option value="1">Class 1</option><option value="2" selected>Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option></select></label>
+          <label><span>SMYS</span><input id="iliToFeaSmys" type="number" min="0.001" step="1" value="448"><small>MPa</small></label>
+          <label><span>SMTS</span><input id="iliToFeaSmts" type="number" min="0.001" step="1" value="535"><small>MPa</small></label>
+          <label><span>Elastic modulus</span><input id="iliToFeaElasticModulus" type="number" min="0.001" step="1000" value="207000"><small>MPa</small></label>
+          <label><span>Fracture toughness</span><input id="iliToFeaToughness" type="number" min="0.001" step="1" value="95"><small>MPa*m^0.5</small></label>
+          <label><span>Assessment factor</span><input id="iliToFeaAssessmentFactor" type="number" min="0.001" max="1" step="0.01" value="0.72"></label>
+          <label><span>Pipe weld type</span><select id="iliToFeaPipeWeldType"><option value="erw_high_frequency" selected>ERW - High Frequency</option><option value="erw_low_frequency">ERW - Low Frequency</option><option value="long_seam_dsaw">Long Seam DSAW</option><option value="spiral_dsaw">Spiral DSAW</option><option value="electric_flash_welded">Electric Flash-Welded Long Seam</option><option value="furnace_butt_welded">Furnace Butt-Welded Long Seam</option><option value="seamless">Seamless pipe</option></select></label>
+          <label><span>Pressure cycle range</span><input id="iliToFeaPressureRange" type="number" min="0" step="0.01" value="1.5"><small>MPa</small></label>
+          <label><span>Cycles per year</span><input id="iliToFeaCyclesPerYear" type="number" min="0" step="100" value="1000"></label>
+          <label><span>Applied cycles</span><input id="iliToFeaAppliedCycles" type="number" min="0" step="1000" value="10000"></label>
+          <label><span>Bending strain</span><input id="iliToFeaBendingStrain" type="number" min="0" step="0.01" value="0.2"><small>%</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Pipeline Weld and Heat-Affected-Zone Information</h2><p>Define weld and HAZ properties used for weld-coincident anomaly capacity and fracture assessment.</p></div></div>
+        <div class="grid">
+          <label><span>Spiral seam turns</span><input id="iliToFeaSpiralTurns" type="number" min="0.25" max="10" step="0.25" value="1.5"><small>turns across displayed model length</small></label>
+          <label><span>Weld yield strength</span><input id="iliToFeaWeldYield" type="number" min="0.001" step="1" value="480"><small>MPa</small></label>
+          <label><span>Weld fracture toughness</span><input id="iliToFeaWeldToughness" type="number" min="0.001" step="1" value="75"><small>MPa*m^0.5</small></label>
+          <label><span>Weld residual stress</span><input id="iliToFeaWeldResidualFactor" type="number" min="0" max="1" step="0.05" value="0.6"><small>fraction of weld yield</small></label>
+          <label><span>Weld cap width</span><input id="iliToFeaWeldWidth" type="number" min="0.1" step="0.5" value="12"><small>mm</small></label>
+          <label><span>HAZ width per side</span><input id="iliToFeaHazWidth" type="number" min="0" step="0.5" value="6"><small>mm</small></label>
+          <label><span>Weld strength mismatch</span><output id="iliToFeaWeldMismatch">1.07</output><small>weld yield / pipe SMYS</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>Raw Inspection Tool Files</h2><p>Load TXT, CSV, or Excel. Imported rows remain editable before model generation.</p></div></div>
+        <div class="geometry-source-row">
+          <label><span>Geometry source</span><select id="iliToFeaGeometrySource"><option value="auto" selected>Auto: raw data first, feature list fallback</option><option value="raw">Raw tool data only</option><option value="feature">Feature list only</option></select></label>
+          <p id="iliToFeaGeometrySourceNote">Raw MFL, crack, and caliper measurements update the defect dimensions used by the mesh and calculations.</p>
+        </div>
+        <div class="grouped-inputs raw-ili-data-grid">
+          <div class="input-group-box raw-tool-box">
+            <h3>Raw MFL Samples</h3>
+            <label class="raw-tool-file"><span>MFL file</span><input id="iliToFeaMflFile" type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+            <p id="iliToFeaMflStatus" class="raw-tool-status">Example: 6 measurement points</p>
+            <label><span>Editable MFL data</span><textarea id="iliToFeaMflRaw" rows="7">F-101,1250.0,3:00,-40,-20,28
+F-101,0,0,42
+F-101,38,18,34
+F-104,-60,-25,48
+F-104,0,0,64
+F-104,65,30,51</textarea><small>feature_id, [distance_m, clock], axial_mm, circumferential_mm, depth_%</small></label>
+          </div>
+          <div class="input-group-box raw-tool-box">
+            <h3>Raw Crack Samples</h3>
+            <label class="raw-tool-file"><span>Crack-tool file</span><input id="iliToFeaCrackFile" type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+            <p id="iliToFeaCrackStatus" class="raw-tool-status">Example: 3 crack-front points</p>
+            <label><span>Editable crack data</span><textarea id="iliToFeaCrackRaw" rows="7">F-102,1250.2,3:30,-20,-4,4.2,0.25,10,C1,crack
+F-102,0,0,5.51,0.42
+F-102,20,5,4.6,0.28</textarea><small>feature_id, [distance_m, clock], axial_mm, circumferential_mm, depth_mm, opening_mm, [orientation, crack_id, type]</small></label>
+          </div>
+          <div class="input-group-box raw-tool-box">
+            <h3>Raw Caliper Samples</h3>
+            <label class="raw-tool-file"><span>Caliper file</span><input id="iliToFeaCaliperFile" type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+            <p id="iliToFeaCaliperStatus" class="raw-tool-status">Example: 3 surface points</p>
+            <label><span>Editable caliper data</span><textarea id="iliToFeaCaliperRaw" rows="7">F-103,1280.2,12:00,-30,-25,-1.1
+F-103,0,0,-1.71
+F-103,30,25,-1.0</textarea><small>feature_id, [distance_m, clock], axial_mm, circumferential_mm, radial_deformation_mm</small></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">4</span><div><h2>Optional Summarized Feature List</h2><p>Use summarized feature data for metadata and fallback geometry when raw measurements are unavailable.</p></div></div>
+        <div class="file-import-row">
+          <label><span>Feature list file</span><input id="iliToFeaFile" type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"><small>ID, type, depth %, length, clock, distance, optional pressure</small></label>
+          <span id="iliToFeaFileStatus">Example metadata is available.</span>
+        </div>
+        <div class="grid">
+          <label class="wide-field"><span>Feature IDs</span><input id="iliToFeaIds" type="text" value="F-101, F-102, F-103, F-104"></label>
+          <label class="wide-field"><span>Feature types</span><input id="iliToFeaTypes" type="text" value="metal_loss, crack, dent, metal_loss"><small>metal_loss, crack, scc, dent, weld, mixed</small></label>
+          <label class="wide-field"><span>Depths</span><input id="iliToFeaDepths" type="text" value="42, 58, 18, 64"><small>% wall thickness</small></label>
+          <label class="wide-field"><span>Axial lengths</span><input id="iliToFeaLengths" type="text" value="110, 45, 75, 180"><small>mm</small></label>
+          <label class="wide-field"><span>Circumferential widths</span><input id="iliToFeaWidths" type="text" value="70, 20, 90, 110"><small>mm; leave blank to infer</small></label>
+          <label class="wide-field"><span>Clock positions</span><input id="iliToFeaClocks" type="text" value="3:00, 3:30, 12:00, 4:30"></label>
+          <label class="wide-field"><span>ILI distances</span><input id="iliToFeaDistances" type="text" value="1250.0, 1250.2, 1280.2, 1315.6"><small>m</small></label>
+          <label class="wide-field"><span>Crack orientations</span><input id="iliToFeaOrientations" type="text" value="0, 10, 0, 0"><small>degrees from pipe axis</small></label>
+          <label class="wide-field"><span>Surfaces</span><input id="iliToFeaSurfaces" type="text" value="external, external, external, external"></label>
+          <label class="wide-field"><span>Nearest weld types</span><input id="iliToFeaWeldTypes" type="text" value="none, girth_weld, none, pipe_seam"><small>none, girth_weld, pipe_seam, longitudinal_seam, spiral_seam</small></label>
+          <label class="wide-field"><span>Offsets from weld centerline</span><input id="iliToFeaWeldOffsets" type="text" value="0, 0, 0, 0"><small>mm; weld metal and HAZ are assigned from this offset</small></label>
+          <label class="wide-field"><span>Reported failure pressures</span><input id="iliToFeaReportedPressures" type="text" value="0, 8.1, 0, 6.8"><small>MPa; use 0 if unavailable</small></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">5</span><div><h2>FEA and Assessment Model Information</h2><p>Configure interaction grouping, sizing treatment, mesh, solver, and screening methodology.</p></div></div>
+        <div class="grid">
+          <label><span>Interaction distance</span><input id="iliToFeaInteractionDistance" type="number" min="0" step="25" value="500"><small>maximum axial edge spacing, mm</small></label>
+          <label><span>ILI sizing treatment</span><select id="iliToFeaSizingCase"><option value="nominal">Nominal</option><option value="conservative" selected>Conservative</option><option value="probabilistic">Probabilistic midpoint</option></select></label>
+          <label><span>Mesh refinement</span><select id="iliToFeaMeshRefinement"><option value="coarse">Coarse</option><option value="standard" selected>Standard</option><option value="fine">Fine</option></select></label>
+          <label><span>Solver strategy</span><select id="iliToFeaSolver"><option value="implicit_riks" selected>Implicit with Riks near collapse</option><option value="implicit_newton">Implicit Newton-Raphson</option><option value="explicit_quasi_static">Explicit quasi-static</option></select></label>
+          <label><span>Screening method</span><select id="iliToFeaScreeningMethod"><option value="modified_b31g" selected>Modified B31.G</option><option value="asme_b31g">ASME B31G</option><option value="rstreng_simplified">RSTRENG simplified</option><option value="corlas">CorLAS</option><option value="scc_colony">SCC colony</option></select></label>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">6</span><div><h2>FEA Automation, Surrogate, and Reliability</h2><p>Configure rapid advisory inference and optionally activate uncertainty propagation.</p></div></div>
+        <div class="grid">
+          <label><span>ML surrogate</span><select id="iliToFeaSurrogateModel"><option value="ann" selected>ANN: 4-8-1 feedforward</option><option value="dnn">DNN: 4-10-6-1 feedforward</option></select><small>Published corrosion-FEA parameter domain</small></label>
+          <label><span>Reliability module</span><select id="iliToFeaReliabilityEnabled"><option value="on" selected>Activated</option><option value="off">Deactivated</option></select><small>controls Monte Carlo uncertainty propagation</small></label>
+          <label class="ili-reliability-field"><span>Reliability samples</span><input id="iliToFeaReliabilitySamples" type="number" min="500" max="50000" step="500" value="2500"><small>Monte Carlo simulations</small></label>
+          <label class="ili-reliability-field"><span>Depth uncertainty</span><input id="iliToFeaDepthCov" type="number" min="0" max="1" step="0.01" value="0.10"><small>coefficient of variation</small></label>
+          <label class="ili-reliability-field"><span>Pressure uncertainty</span><input id="iliToFeaPressureCov" type="number" min="0" max="1" step="0.01" value="0.03"><small>coefficient of variation</small></label>
+          <label class="ili-reliability-field"><span>Surrogate model error</span><input id="iliToFeaModelErrorCov" type="number" min="0" max="1" step="0.01" value="0.08"><small>coefficient of variation</small></label>
+          <label><span>B31.8 strain limit</span><input id="iliToFeaStrainLimit" type="number" min="0.001" max="1" step="0.01" value="0.06"><small>strain fraction; 0.06 = 6%</small></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">7</span><div><h2>Automated Assessment Results</h2><p>The governing MOP includes isolated defect capacity and all generated interaction models.</p></div></div>
+        <div id="iliToFeaErrorBox" class="error-box" hidden></div>
+        <div id="iliToFeaAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span><strong id="iliToFeaStatus">Not calculated</strong>
+          <p id="iliToFeaDisposition">Import or confirm the ILI data, then build the automated models.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Translated features</span><strong id="iliToFeaFeatureCount">0</strong></div>
+          <div><span>FEA interaction models</span><strong id="iliToFeaModelCount">0</strong></div>
+          <div><span>Maximum MOP</span><strong id="iliToFeaMaximumMop">0 MPa</strong></div>
+          <div><span>MOP utilization</span><strong id="iliToFeaUtilization">0</strong></div>
+          <div><span>Governing source</span><strong id="iliToFeaGoverningSource">-</strong></div>
+          <div><span>Failure mode</span><strong id="iliToFeaFailureMode">-</strong></div>
+          <div><span>Minimum fatigue life</span><strong id="iliToFeaFatigueLife">Not calculated</strong></div>
+          <div><span>Critical feature</span><strong id="iliToFeaCriticalFeature">-</strong></div>
+          <div><span>Raw inspection samples</span><strong id="iliToFeaRawSamples">0</strong></div>
+          <div><span>Generated mesh</span><strong id="iliToFeaRawMesh">0 nodes / 0 elements</strong></div>
+          <div><span>Crack mesh voids</span><strong id="iliToFeaCrackVoids">0 removed elements</strong></div>
+          <div><span>Local mesh density</span><strong id="iliToFeaMeshDensity">0x remote</strong></div>
+          <div><span>ML surrogate</span><strong id="iliToFeaSurrogateOutput">Not calculated</strong></div>
+          <div><span>Probability of failure</span><strong id="iliToFeaProbabilityFailure">Not calculated</strong></div>
+          <div><span>Reliability index</span><strong id="iliToFeaReliabilityIndex">Not calculated</strong></div>
+          <div><span>Maximum strain</span><strong id="iliToFeaMaximumStrain">0%</strong></div>
+          <div><span>B31.8 / API RP 1183</span><strong id="iliToFeaStrainAcceptance">Not calculated</strong></div>
+          <div><span>Weld-coincident features</span><strong id="iliToFeaWeldFeatureCount">0</strong></div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">8</span><div><h2>3D Raw-Data FEA Model</h2><p>Rotate and zoom the solver-ready shell to inspect MFL-driven wall thinning, caliper-driven dents, and crack/SCC paths represented by removed mesh elements.</p></div></div>
+        <div class="ili-fea-3d-toolbar">
+          <div class="ili-fea-legend"><span class="mfl-swatch"></span>Thinned wall <span class="crack-swatch"></span>Crack / removed elements <span class="caliper-swatch"></span>Dented shell <span class="weld-swatch"></span>Weld / HAZ <span class="mesh-swatch"></span>Single mesh with local element refinement</div>
+          <button id="iliToFeaReset3dButton" class="secondary-button" type="button">Reset view</button>
+        </div>
+        <div id="iliToFea3dVisualization" class="ili-fea-3d-view" role="img" aria-label="3D pipe anomalies and FEA mesh">
+          <div class="visual-empty-state">Run the automated assessment to generate the 3D raw-data mesh.</div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">9</span><div><h2>Translated ILI Geometry</h2><p>Review the automatic conversion from ILI measurements to developed-pipe model coordinates.</p></div></div>
+        <div id="iliToFeaVisualization" class="fea-visual ili-fea-map" aria-label="Automated ILI to FEA model map"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-user-table">
+            <thead><tr><th>Feature</th><th>FEA type</th><th>Axial x</th><th>Clock / theta</th><th>Depth</th><th>Length x width</th><th>Geometry basis</th><th>Surface</th><th>Weld location</th></tr></thead>
+            <tbody id="iliToFeaFeatureTable"><tr><td colspan="9">Run the automated assessment to translate ILI geometry.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">10</span><div><h2>Generated FEA Models</h2><p>Each row is a model-ready interacting defect pair with capacity, fatigue, mesh, and failure-mode outputs.</p></div></div>
+        <div class="admin-table-wrap">
+          <table class="admin-user-table">
+            <thead><tr><th>Model</th><th>Features</th><th>Interaction</th><th>Factor</th><th>Failure pressure</th><th>Maximum MOP</th><th>Fatigue life</th><th>Mesh</th><th>Failure mode</th></tr></thead>
+            <tbody id="iliToFeaModelTable"><tr><td colspan="9">No FEA models generated yet.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <main id="interactionPage" class="corlas-page" hidden>
+      <section class="segment">
+        <div class="segment-heading">
+          <span class="segment-index">FEA</span>
+          <div>
+            <h2>Interacting Pipeline Anomalies FEA Model</h2>
+            <p>Parametric Level 3 FEA model-preparation and screening workflow for interacting corrosion, crack, dent, weld, and mixed anomalies.</p>
+          </div>
+        </div>
+        <div class="corlas-top-actions">
+          <button id="backToModulesFromInteraction" class="secondary-button" type="button">Back to Modules</button>
+          <button id="interactionReportButton" class="secondary-button" type="button">Create Report</button>
+          <button id="calculateInteractionButton" type="button">Calculate Interaction Model</button>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">1</span><div><h2>Pipe, Material, and Loading</h2><p>Inputs define the base pipe model, nonlinear material envelope, operating pressure, residual stress, and pressure cycling.</p></div></div>
+        <div class="grid">
+          <label><span>Outside diameter, D</span><input id="interactionOd" type="number" min="0.001" step="0.1" value="762"><small>mm</small></label>
+          <label><span>Wall thickness, t</span><input id="interactionWallThickness" type="number" min="0.001" step="0.1" value="9.5"><small>mm</small></label>
+          <label><span>MAOP</span><input id="interactionMaop" type="number" min="0.001" step="0.01" value="6.9"><small>MPa</small></label>
+          <label><span>SMYS</span><input id="interactionSmys" type="number" min="0.001" step="1" value="448"><small>MPa</small></label>
+          <label><span>SMTS</span><input id="interactionSmts" type="number" min="0.001" step="1" value="535"><small>MPa</small></label>
+          <label><span>Elastic modulus, E</span><input id="interactionElasticModulus" type="number" min="0.001" step="1000" value="207000"><small>MPa</small></label>
+          <label><span>Fracture toughness, Kmat</span><input id="interactionToughness" type="number" min="0.001" step="1" value="95"><small>MPa*m^0.5</small></label>
+          <label><span>Model length</span><input id="interactionLengthFactor" type="number" min="6" max="10" step="0.5" value="8"><small>D, framework range 6D to 10D</small></label>
+          <label><span>Secondary stress</span><input id="interactionSecondaryStress" type="number" min="0" step="1" value="0"><small>MPa</small></label>
+          <label><span>Residual stress fraction</span><input id="interactionResidualStress" type="number" min="0" max="1" step="0.05" value="0.2"><small>x SMYS</small></label>
+          <label><span>Pressure cycle range</span><input id="interactionPressureRange" type="number" min="0" step="0.01" value="1.5"><small>MPa</small></label>
+          <label><span>Paris C</span><input id="interactionParisC" type="number" min="1e-20" step="1e-13" value="0.000000000001"></label>
+          <label><span>Paris m</span><input id="interactionParisM" type="number" min="0.001" step="0.1" value="3"></label>
+        </div>
+      </section>
+
+      <section class="segment anomaly-geometry-segment">
+        <div class="segment-heading"><span class="segment-index">2</span><div><h2>Anomaly Geometry</h2><p>Centroid locations are converted to edge-to-edge axial and circumferential spacings for the interaction check.</p></div></div>
+        <div class="grouped-inputs anomaly-geometry-grid">
+          <div class="input-group-box anomaly-card">
+            <h3>Anomaly A1</h3>
+            <div class="grid compact-grid anomaly-field-grid">
+              <label><span>Type</span><select id="interactionA1Type"><option value="metal_loss" selected>Metal loss</option><option value="crack">Crack-like</option><option value="dent">Dent</option><option value="weld">Weld-related</option><option value="mixed">Mixed defect</option></select></label>
+              <label><span>Surface</span><select id="interactionA1Surface"><option value="external" selected>External</option><option value="internal">Internal</option></select></label>
+              <label><span>Axial location</span><input id="interactionA1X" type="number" step="1" value="-120"><small>mm</small></label>
+              <label><span>Clock position</span><input id="interactionA1Theta" type="number" min="0" max="360" step="1" value="20"><small>deg</small></label>
+              <label><span>Axial length</span><input id="interactionA1Length" type="number" min="0.001" step="1" value="180"><small>mm</small></label>
+              <label><span>Circumferential width</span><input id="interactionA1Width" type="number" min="0.001" step="1" value="90"><small>mm</small></label>
+              <label><span>Depth</span><input id="interactionA1Depth" type="number" min="0.001" step="0.1" value="3.5"><small>mm</small></label>
+              <label><span>Crack orientation</span><input id="interactionA1Orientation" type="number" min="0" max="180" step="1" value="0"><small>deg from pipe axis</small></label>
+            </div>
+          </div>
+          <div class="input-group-box anomaly-card">
+            <h3>Anomaly A2</h3>
+            <div class="grid compact-grid anomaly-field-grid">
+              <label><span>Type</span><select id="interactionA2Type"><option value="metal_loss">Metal loss</option><option value="crack" selected>Crack-like</option><option value="dent">Dent</option><option value="weld">Weld-related</option><option value="mixed">Mixed defect</option></select></label>
+              <label><span>Surface</span><select id="interactionA2Surface"><option value="external" selected>External</option><option value="internal">Internal</option></select></label>
+              <label><span>Axial location</span><input id="interactionA2X" type="number" step="1" value="70"><small>mm</small></label>
+              <label><span>Clock position</span><input id="interactionA2Theta" type="number" min="0" max="360" step="1" value="35"><small>deg</small></label>
+              <label><span>Axial length</span><input id="interactionA2Length" type="number" min="0.001" step="1" value="120"><small>mm</small></label>
+              <label><span>Circumferential width</span><input id="interactionA2Width" type="number" min="0.001" step="1" value="45"><small>mm</small></label>
+              <label><span>Depth</span><input id="interactionA2Depth" type="number" min="0.001" step="0.1" value="2.5"><small>mm</small></label>
+              <label><span>Crack orientation</span><input id="interactionA2Orientation" type="number" min="0" max="180" step="1" value="0"><small>deg from pipe axis</small></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">3</span><div><h2>Uncertainty, Mesh, and Solver Controls</h2><p>Conservative ILI sizing and local solid-element refinement are reflected in the model estimate and visual mesh.</p></div></div>
+        <div class="grid">
+          <label><span>Input treatment</span><select id="interactionSizingCase"><option value="nominal" selected>Nominal</option><option value="conservative">Conservative</option><option value="probabilistic">Probabilistic midpoint</option></select></label>
+          <label><span>Depth tolerance</span><input id="interactionDepthTolerance" type="number" min="0" step="0.1" value="0.5"><small>mm</small></label>
+          <label><span>Length tolerance</span><input id="interactionLengthTolerance" type="number" min="0" step="1" value="10"><small>mm</small></label>
+          <label><span>Width tolerance</span><input id="interactionWidthTolerance" type="number" min="0" step="1" value="10"><small>mm</small></label>
+          <label><span>Mesh refinement</span><select id="interactionMeshRefinement"><option value="coarse">Coarse</option><option value="standard" selected>Standard</option><option value="fine">Fine</option></select></label>
+          <label><span>Solver strategy</span><select id="interactionSolverStrategy"><option value="implicit_riks" selected>Implicit with Riks near collapse</option><option value="implicit_newton">Implicit Newton-Raphson</option><option value="explicit_quasi_static">Explicit quasi-static</option></select></label>
+        </div>
+      </section>
+
+      <section class="segment output-segment">
+        <div class="segment-heading"><span class="segment-index">4</span><div><h2>Interaction Outputs</h2><p>Framework outputs include interaction factor, safety factor, likely failure mode, mesh sizing, and boundary-condition notes.</p></div></div>
+        <div id="interactionErrorBox" class="error-box" hidden></div>
+        <div id="interactionAssessmentBox" class="pass-fail-box pass-fail-neutral">
+          <span>ASSESSMENT</span>
+          <strong id="interactionStatus">Not calculated</strong>
+          <p id="interactionDisposition">Run the interacting anomalies model to evaluate cluster interaction.</p>
+        </div>
+        <div class="metrics corlas-metrics">
+          <div><span>Interaction factor, I</span><strong id="interactionFactor">0</strong></div>
+          <div><span>Interaction class</span><strong id="interactionClass">-</strong></div>
+          <div><span>Pfail combined</span><strong id="interactionCombinedPressure">0 MPa</strong></div>
+          <div><span>Weakest isolated Pfail</span><strong id="interactionWeakestPressure">0 MPa</strong></div>
+          <div><span>Safety factor</span><strong id="interactionSafetyFactor">0</strong></div>
+          <div><span>Safety category</span><strong id="interactionSafetyCategory">-</strong></div>
+          <div><span>Axial edge spacing</span><strong id="interactionAxialSpacing">0 mm</strong></div>
+          <div><span>Circumferential spacing</span><strong id="interactionCircSpacing">0 mm</strong></div>
+          <div><span>Normalized lambda x</span><strong id="interactionLambdaX">0</strong></div>
+          <div><span>Normalized lambda theta</span><strong id="interactionLambdaTheta">0</strong></div>
+          <div><span>Max equivalent strain</span><strong id="interactionMaxStrain">0</strong></div>
+          <div><span>K max</span><strong id="interactionKMax">0 MPa*m^0.5</strong></div>
+          <div><span>Remaining cycles</span><strong id="interactionRemainingCycles">Not checked</strong></div>
+          <div><span>Critical location</span><strong id="interactionCriticalLocation">-</strong></div>
+          <div><span>Model length</span><strong id="interactionModelLength">0 mm</strong></div>
+          <div><span>Estimated solid elements</span><strong id="interactionElementCount">0</strong></div>
+        </div>
+        <div class="criteria-panel">
+          <h3>FEA Model Notes and Boundary Conditions</h3>
+          <ul id="interactionBoundaryList">
+            <li>Run the calculation to show mesh and boundary-condition notes.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="segment">
+        <div class="segment-heading"><span class="segment-index">5</span><div><h2>Visual Model Demonstration</h2><p>The developed pipe view, local FEA mesh, anomaly interaction envelope, and boundary conditions update from the input parameters.</p></div></div>
+        <div id="interactionVisualization" class="fea-visual" aria-label="Developed pipe anomaly interaction visual"></div>
+        <div id="meshBoundaryVisualization" class="fea-visual mesh-visual" aria-label="FEA mesh and boundary condition visual"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">Developed by M. Razzak. All rights reserved.</footer>
+
+    <script src="app.js"></script>
+    <script type="module" src="ili-fea-3d.js"></script>
+  </body>
+</html>

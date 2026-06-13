@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pipeline-crossing-assessment
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m cepa_crossing.gui_server
+    envVars:
+      - key: PIPELINE_ASSESSMENT_HOST
+        value: 0.0.0.0
+      - key: PIPELINE_ASSESSMENT_DATA_DIR
+        value: /var/data/pipeline-crossing
+    disks:
+      - name: pipeline-crossing-data
+        mountPath: /var/data
+        sizeGB: 1
